@@ -11,8 +11,8 @@ Public ExcelApp As Variant
 Public ExcelSheet As Variant
 Dim db As NotesDatabase
 Dim s As NotesSession
+Dim strError As String
 
-	Dim strError As String
 Sub Initialize
 	On Error GoTo handler 'обработчик ошибок
 	REM +++++++++++++++++++++++++++++
@@ -41,6 +41,9 @@ Sub Initialize
 	If Err()<>0 Then Err=0 : Print "Ошибка при открытии " + path : GoTo endh
 	On Error GoTo handler
 	
+	Set ExcelSheet = ExcelApp.Workbooks(1).Worksheets(1)
+	If Err()<>0 Then Err=0 : Print "Ошибка ExcelApp.Workbooks(1).Worksheets(1) при открытии " : GoTo endh
+	On Error GoTo handler
 	
 	
 	' Определяем БД
@@ -72,13 +75,7 @@ Function FillRuk(i As Integer, unidorg$, opf$, pn$, kn$)
 	Dim unid$, tmp$, opffull$, y%, m%, d%, data$
 	Dim tmp2 As Variant
 	Dim doc As NotesDocument
-	
-	' Обращение к листу
-	On Error Resume Next
-	Set ExcelSheet = ExcelApp.Workbooks(1).Worksheets(1)
-	If Err()<>0 Then Err=0 : Print "Ошибка ExcelApp.Workbooks(1).Worksheets(1) при открытии " : GoTo endh
-	On Error GoTo handler
-	
+
 	' Определяем БД
 	Set db = s.Currentdatabase
 	' Создаем документ в БД
@@ -145,12 +142,7 @@ Function FillAnk(i As Integer, unidorg$, opf$, pn$, kn$, datecrt$ )
 	REM +++++++++++++++++++++++++++++	
 	Dim unid$, tmp$, tmp2$, opffull$
 	Dim doc As NotesDocument
-	
-	' Обращение к листу
 	On Error Resume Next
-	Set ExcelSheet = ExcelApp.Workbooks(1).Worksheets(1)
-	If Err()<>0 Then Err=0 : Print "Ошибка ExcelApp.Workbooks(1).Worksheets(1) при открытии " : GoTo endh
-	On Error GoTo handler
 	
 	' Определяем БД
 	Set db = s.Currentdatabase
@@ -231,13 +223,8 @@ Function FillProcess(i As Integer)
 	REM +++++++++++++++++++++++++++++	
 	Dim unidorg$, tmp$, tmp2$, opf$, pn$, kn$, datecrt$
 	Dim doc As NotesDocument
-	
-	' Обращение к листу
 	On Error Resume Next
-	Set ExcelSheet = ExcelApp.Workbooks(1).Worksheets(1)
-	If Err()<>0 Then Err=0 : Print "Ошибка ExcelApp.Workbooks(1).Worksheets(1) при открытии " : GoTo endh
-	On Error GoTo handler
-	
+
 	' Определяем БД
 	Set db = s.Currentdatabase
 	' Создаем документ в БД
@@ -318,10 +305,7 @@ Function FillEgrul(i%, unidorg$, opf$, pn$, kn$)
 	j=0
 	' Обращение к листу
 	On Error Resume Next
-	Set ExcelSheet = ExcelApp.Workbooks(1).Worksheets(1)
-	If Err()<>0 Then Err=0 : Print "Ошибка ExcelApp.Workbooks(1).Worksheets(1) при открытии " : GoTo endh
-	On Error GoTo handler
-	
+
 	' Определяем БД
 	Set db = s.Currentdatabase
 	' Создаем документ в БД
