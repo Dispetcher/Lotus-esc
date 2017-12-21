@@ -1,0 +1,326 @@
+%REM
+	Agent Data Uploading from esculap
+	Created 20/12/2017 Dmitry Skoblikov
+
+%END REM
+Option Public
+Option Declare
+Use "PickListFromAnotherDB"
+
+Public ExcelApp As Variant
+Public ExcelSheet As Variant
+Dim db As NotesDatabase
+Dim s As NotesSession
+
+	Dim strError As String
+Sub Initialize
+	On Error GoTo handler 'обработчик ошибок
+	REM +++++++++++++++++++++++++++++
+	Dim ws As New NotesUIWorkspace
+	Dim ret, path$, i%
+
+	Set ExcelApp = CreateObject("Excel.Application")
+	On Error GoTo handler
+	If Err<>0 Then MsgBox "Excel не установлен на компьютере": GoTo endh
+	
+	' Подключение к Excel
+	On Error Resume Next
+	Set ExcelApp = CreateObject("Excel.Application")
+	If Err()<>0 Then MsgBox "Excel не установлен": End
+	On Error GoTo handler
+
+	REM +++
+	' Выбираем файл для открытия
+	ret = ws.Openfiledialog(false, "Выбор файла", "Excel_2013|*.xlsx|Excel_2010|*.xls", "D:\", )
+	If IsEmpty(ret) Then GoTo endh
+	path = ret(0)
+		
+	'Открытие файла
+	On Error Resume Next
+	Call ExcelApp.Workbooks.Add(path)
+	If Err()<>0 Then Err=0 : Print "Ошибка при открытии " + path : GoTo endh
+	On Error GoTo handler
+	
+	
+	
+	' Определяем БД
+	Set s = New NotesSession
+	'Set db = s.CurrentDatabase
+	
+	For i=2 To 3
+		Call FillProcess(i)
+	Next i
+
+	ExcelApp.DisplayAlerts = False
+	ExcelApp.Quit
+	
+	REM +++++++++++++++++++++++++++++
+	GoTo endh
+handler:
+	ExcelApp.DisplayAlerts = False
+	ExcelApp.Quit
+	Dim strError As String
+	strError = " Ошибка в Процедуре { Initialize } из Агента { Дормост Закачка Реестра Excel }, строка " + CStr(Erl) + Chr(10) + Error$
+	Error Err, strError
+endh:
+End Sub
+
+REM Головная форма Процесс-OrgChlenSRO
+Function FillProcess(i As Integer)
+	On Error GoTo handler 'обработчик ошибок
+	REM +++++++++++++++++++++++++++++	
+	Dim unidorg$, tmp$, tmp2$, opf$, pn$, kn$, datecrt$
+	Dim doc As NotesDocument
+	
+	' Обращение к листу
+	On Error Resume Next
+	Set ExcelSheet = ExcelApp.Workbooks(1).Worksheets(1)
+	If Err()<>0 Then Err=0 : Print "Ошибка ExcelApp.Workbooks(1).Worksheets(1) при открытии " : GoTo endh
+	On Error GoTo handler
+	
+	' Определяем БД
+	Set db = s.Currentdatabase
+	' Создаем документ в БД
+	Set doc = db.Createdocument()
+	
+	' Заполняем UNID
+	unidorg =  doc.Universalid 
+	Call doc.Replaceitemvalue("UNID", unidorg)
+	' Определяем имя формы
+	Call doc.Replaceitemvalue("Form", "OrgChlenSRO")
+	' Ставим действующую организацию
+	Call doc.Replaceitemvalue("OrgStatus", "2" )
+	Call doc.Replaceitemvalue("FromCandidatToChlen", "1" )
+	
+	' Полное наим орг
+	' ОПФ
+	opf = ExcelSheet.Cells(i,6).Value
+	opf = FullTrim(opf)
+	' Часть полн. наименования
+	pn = ExcelSheet.Cells(i,9).Value
+	pn = FullTrim(pn)
+	
+	pn = opf + " " + pn
+	Call doc.Replaceitemvalue("OrgChlenSROТName", pn)	
+	Call doc.Replaceitemvalue("PolnoeNaimenovanieOrg", pn)
+	
+	' Краткое наименование
+	kn = ExcelSheet.Cells(i,10).Value
+	kn = FullTrim(kn)
+	
+	kn = opf + " " + kn
+	Call doc.Replaceitemvalue("OrgChlenSROТName_1", kn)	
+	
+	'Дата вступления
+	datecrt = DateValue(ExcelSheet.Cells(i,22).Value)
+	Call doc.Replaceitemvalue("DatePrinVNP", datecrt)	
+	
+	'Номер решения
+	tmp = Val(ExcelSheet.Cells(i,23).Value)
+	Call doc.Replaceitemvalue("NumResh", tmp)
+	
+	'Дата рег в реестре СРО
+	tmp = DateValue(ExcelSheet.Cells(i,24).Value)
+	Call doc.Replaceitemvalue("DateRegistr", tmp)
+	
+	' Номер рег записи
+	tmp = ExcelSheet.Cells(i,1).Value
+	tmp = FullTrim(tmp)
+	Call doc.Replaceitemvalue("NomerRegistracionnojZapisi", tmp)
+
+	Call doc.Save(True, True, True)
+	
+	REM Запускаем функцию заполн анкеты
+	Call FillAnk(i, unidorg, opf, pn, kn, datecrt)
+	Call FillRuk(i, unidorg, opf, pn, kn)
+	REM +++++++++++++++++++++++++++++
+	GoTo endh
+handler:
+	ExcelApp.DisplayAlerts = False
+	ExcelApp.Quit
+	Dim strError As String
+	strError = " Ошибка в { функции FillProcess}, строка " + CStr(Erl) + Chr(10) + Error$
+	'Error Err, strError
+	MsgBox strError
+	End
+endh:
+End Function
+
+
+REM Анкета
+Function FillAnk(i As Integer, unidorg$, opf$, pn$, kn$, datecrt$ )
+	On Error GoTo handler 'обработчик ошибок
+	REM +++++++++++++++++++++++++++++	
+	Dim unid$, tmp$, tmp2$, opffull$
+	Dim doc As NotesDocument
+	
+	' Обращение к листу
+	On Error Resume Next
+	Set ExcelSheet = ExcelApp.Workbooks(1).Worksheets(1)
+	If Err()<>0 Then Err=0 : Print "Ошибка ExcelApp.Workbooks(1).Worksheets(1) при открытии " : GoTo endh
+	On Error GoTo handler
+	
+	' Определяем БД
+	Set db = s.Currentdatabase
+	' Создаем документ в БД
+	Set doc = db.Createdocument()	
+
+	' UNID doc
+	unid =  doc.Universalid 
+	Call doc.Replaceitemvalue("UNID", unid)
+	' Определяем имя формы
+	Call doc.Replaceitemvalue("Form", "2214Anketa")
+	' OrgChlenSROTName
+	Call doc.Replaceitemvalue("OrgChlenSROТName", pn)	
+	' OrgChlenSROUNID
+	Call doc.Replaceitemvalue("OrgChlenSROUNID", unidorg)
+	' OrgChlenSROTName
+	Call doc.Replaceitemvalue("OrgChlenSROТNameShow", kn)	
+	
+	'Наим документа
+	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "Сведения об организации")	
+	'Дата документа
+	Call doc.Replaceitemvalue("DataPodachiDokumenta", Today())	
+	' Кем выдано
+	Call doc.Replaceitemvalue("KemVidano", kn)
+	'Полное
+	Call doc.Replaceitemvalue("PolnoeNaimenovanieOrg", pn)	
+	'Краткое
+	Call doc.Replaceitemvalue("OrgChlenSROТName1", kn)	
+	'Предыдущ наим
+	Call doc.Replaceitemvalue("PolnoeNaimenovanieOrgOld", "")
+	'Год создания
+	Call doc.Replaceitemvalue("YearCompany", Year(DateValue(datecrt)))
+	'Юр адрес
+	tmp = ExcelSheet.Cells(i,37).Value
+	Call doc.Replaceitemvalue("JurAdres", tmp)	
+	'Факт адрес
+	tmp = ExcelSheet.Cells(i,39).Value
+	Call doc.Replaceitemvalue("FactAdres", tmp)	
+	'ТЛФ
+	tmp = ExcelSheet.Cells(i,15).Value
+	Call doc.Replaceitemvalue("Phone", tmp)	
+	'Факс
+	tmp = ExcelSheet.Cells(i,16).Value
+	Call doc.Replaceitemvalue("Fax", tmp)	
+	'Мэйл
+	tmp = ExcelSheet.Cells(i,17).Value
+	Call doc.Replaceitemvalue("Email", tmp)	
+	'Сайт
+	tmp = ExcelSheet.Cells(i,18).Value
+	Call doc.Replaceitemvalue("www", tmp)	
+	'Конт лицо
+	Call doc.Replaceitemvalue("FIOKontaktnogoLica", "")	
+	'Кол во сотрудников
+	tmp = ExcelSheet.Cells(i,65).Value
+	Call doc.Replaceitemvalue("Vsego", tmp)	
+	'РНП
+	Call doc.Replaceitemvalue("RNP", "нет")	
+	'Банкротство
+	Call doc.Replaceitemvalue("Bankrot", "нет")	
+	
+	Call doc.Save(True, True, True)	
+	
+	%REM	
+	' ОПФ
+	Call doc_ank.Replaceitemvalue("", opf)
+	
+	If opf = "ОАО" Then
+		opffull = "Откртытое акционерное общество" 
+	ElseIf opf = "ЗАО" Then
+		opffull = "Закртытое акционерное общество"
+	ElseIf opf = "АО" Then
+		opffull = "Акционерное общество"	
+	ElseIf opf = "ООО" Then
+		opffull = "Общество с ограниченной ответственностью"	
+	ElseIf opf = "ГУП" Then
+		opffull = "Государственное унитарное предприятие"		
+	End If
+	Call doc_ank.Replaceitemvalue("", opffull)
+	
+	' Год основания
+	Call doc_ank.Replaceitemvalue("IPBornDate", tmp)
+	%END REM	
+	REM +++++++++++++++++++++++++++++
+	GoTo endh
+handler:
+	Dim strError As String
+	strError = " Ошибка в { функции FillAnk}, строка " + CStr(Erl) + Chr(10) + Error$
+	'Error Err, strError
+	MsgBox strError
+	End
+endh:
+End Function	
+REM Протокол назн руководителя
+Function FillRuk(i As Integer, unidorg$, opf$, pn$, kn$)
+	On Error GoTo handler 'обработчик ошибок
+	REM +++++++++++++++++++++++++++++	
+	Dim unid$, tmp$, opffull$, y%, m%, d%, data$
+	Dim tmp2 As Variant
+	Dim doc As NotesDocument
+	
+	' Обращение к листу
+	On Error Resume Next
+	Set ExcelSheet = ExcelApp.Workbooks(1).Worksheets(1)
+	If Err()<>0 Then Err=0 : Print "Ошибка ExcelApp.Workbooks(1).Worksheets(1) при открытии " : GoTo endh
+	On Error GoTo handler
+	
+	' Определяем БД
+	Set db = s.Currentdatabase
+	' Создаем документ в БД
+	Set doc = db.Createdocument()	
+	
+	' UNID doc
+	unid =  doc.Universalid 
+	Call doc.Replaceitemvalue("UNID", unid)
+	' Определяем имя формы
+	Call doc.Replaceitemvalue("Form", "22217ProtokolNaznachRukov")
+	' OrgChlenSROTName
+	Call doc.Replaceitemvalue("OrgChlenSROТName", pn)	
+	' OrgChlenSROUNID
+	Call doc.Replaceitemvalue("OrgChlenSROUNID", unidorg)
+	Print unidorg
+	' OrgChlenSROTName
+	Call doc.Replaceitemvalue("OrgChlenSROТNameShow", kn)	
+	
+	'Наим дока
+	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "Протокол")
+	'Дата дока
+	Call doc.Replaceitemvalue("DataPodachiDokumenta", Today())
+	' Кем выдано, Краткое наим
+	Call doc.Replaceitemvalue("KemVidano", kn)
+	' ФИО
+	tmp = ExcelSheet.Cells(i,11).Value
+	tmp2 = Split(tmp, " ")
+	'Фам рук
+	Call doc.Replaceitemvalue("Fam", tmp2(0))
+	Print tmp2(0)	
+	'Имя рук
+	Call doc.Replaceitemvalue("Name", tmp2(1))
+	'Отч рук
+	Call doc.Replaceitemvalue("Otchstvo", tmp2(2))
+	'Должность рук
+	tmp = ExcelSheet.Cells(i,12).Value
+	Call doc.Replaceitemvalue("Dolzhnost", tmp)	
+	'Дата полномочий
+	Call doc.Replaceitemvalue("DatePolnOt", DateNumber(Year(Today()),Month(Today()), Day(Today)))	
+	'Дата окончаний полном
+	y = Val(Year(Today()))+Val(3)
+	m = Month(Today())
+	d = Day(Today())
+	data = DateNumber(y, m, d)
+	Print data
+	Call doc.Replaceitemvalue("DatePolnDo",data)
+	'Общее кол во лет полномочий - 3 по умолчанию
+	Call doc.Replaceitemvalue("DatePoln", "3")
+	
+	Call doc.Save(True, True, True)		
+	REM +++++++++++++++++++++++++++++
+	GoTo endh
+handler:
+	strError = " Ошибка в { функции FillRuk}, строка " + CStr(Erl) + Chr(10) + Error$
+	'Error Err, strError
+	MsgBox strError
+	End
+endh:
+End Function		
