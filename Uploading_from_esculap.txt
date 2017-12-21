@@ -90,7 +90,6 @@ Function FillRuk(i As Integer, unidorg$, opf$, pn$, kn$)
 	Call doc.Replaceitemvalue("OrgChlenSROТName", pn)	
 	' OrgChlenSROUNID
 	Call doc.Replaceitemvalue("OrgChlenSROUNID", unidorg)
-	Print unidorg
 	' OrgChlenSROTName
 	Call doc.Replaceitemvalue("OrgChlenSROТNameShow", kn)	
 	
@@ -281,7 +280,7 @@ Function FillProcess(i As Integer)
 	Call FillAnk(i, unidorg, opf, pn, kn, datecrt)
 	Call FillRuk(i, unidorg, opf, pn, kn)
 	Call FillEgrul(i, unidorg, opf, pn, kn)
-	
+	Call Fillogrn(i, unidorg, opf, pn, kn)
 	REM +++++++++++++++++++++++++++++
 	GoTo endh
 handler:
@@ -303,8 +302,6 @@ Function FillEgrul(i%, unidorg$, opf$, pn$, kn$)
 	Dim j%, tmp$, unid$, opffull$, uradr As Variant
 	Dim doc As NotesDocument
 	j=0
-	' Обращение к листу
-	On Error Resume Next
 
 	' Определяем БД
 	Set db = s.Currentdatabase
@@ -320,7 +317,6 @@ Function FillEgrul(i%, unidorg$, opf$, pn$, kn$)
 	Call doc.Replaceitemvalue("OrgChlenSROТName", pn)	
 	' OrgChlenSROUNID
 	Call doc.Replaceitemvalue("OrgChlenSROUNID", unidorg)
-	Print unidorg
 	' OrgChlenSROTName
 	Call doc.Replaceitemvalue("OrgChlenSROТNameShow", kn)	
 	
@@ -452,4 +448,60 @@ handler:
 	MsgBox strError
 	End
 endh:
+End Function
+
+%REM
+	Function fillogrn
+	Description: Comments for Function
+%END REM
+Function fillogrn(i%, unidorg$, opf$, pn$, kn$)
+	On Error GoTo handler 'обработчик ошибок
+	REM +++++++++++++++++++++++++++++		
+	Dim tmp$, unid$
+	Dim doc As NotesDocument	
+	
+	' Определяем БД
+	Set db = s.Currentdatabase
+	' Создаем документ в БД
+	Set doc = db.Createdocument()	
+	
+	' UNID doc
+	unid =  doc.Universalid 
+	Call doc.Replaceitemvalue("UNID", unid)
+	' Определяем имя формы
+	Call doc.Replaceitemvalue("Form", "22211SvidPrisvoenOGRN")
+	' OrgChlenSROTName
+	Call doc.Replaceitemvalue("OrgChlenSROТName", pn)	
+	' OrgChlenSROUNID
+	Call doc.Replaceitemvalue("OrgChlenSROUNID", unidorg)
+	' OrgChlenSROTName
+	Call doc.Replaceitemvalue("OrgChlenSROТNameShow", kn)	
+	
+	
+	'Наим дока
+	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "Свидетельство о государственной регистрации юридического лица")
+	'ОГРН
+	tmp = Val(ExcelSheet.Cells(20).Value)
+	Call doc.Replaceitemvalue("OGRN", tmp)
+	'Кому выдано
+	Call doc.Replaceitemvalue("KomuVydan", kn)	
+	'Дата внесения ОГРН
+	tmp = DateValue(ExcelSheet.Cells(33).Value)
+	Call doc.Replaceitemvalue("DateVnesenieOGRN", tmp)
+	'Дата рег предприятия
+	tmp = DateValue(ExcelSheet.Cells(32).Value)
+	Call doc.Replaceitemvalue("DateRegPredpr", tmp)
+	
+	Call doc.Save(True, True, True)
+	REM +++++++++++++++++++++++++++++
+	GoTo endh
+handler:
+	ExcelApp.DisplayAlerts = False
+	ExcelApp.Quit
+	Dim strError As String
+	strError = " Ошибка в { функции FillEgrul}, строка " + CStr(Erl) + Chr(10) + Error$
+	'Error Err, strError
+	MsgBox strError
+	End
+endh:	
 End Function
