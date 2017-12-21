@@ -281,6 +281,7 @@ Function FillProcess(i As Integer)
 	Call FillRuk(i, unidorg, opf, pn, kn)
 	Call FillEgrul(i, unidorg, opf, pn, kn)
 	Call Fillogrn(i, unidorg, opf, pn, kn)
+	Call Fillinn(i, unidorg, opf, pn, kn)
 	REM +++++++++++++++++++++++++++++
 	GoTo endh
 handler:
@@ -483,8 +484,8 @@ Function fillogrn(i%, unidorg$, opf$, pn$, kn$)
 	'ОГРН
 	tmp = Val(ExcelSheet.Cells(20).Value)
 	Call doc.Replaceitemvalue("OGRN", tmp)
-	'Кому выдано
-	Call doc.Replaceitemvalue("KomuVydan", kn)	
+	'Кем выдано
+	Call doc.Replaceitemvalue("KemVidano", kn)	
 	'Дата внесения ОГРН
 	tmp = DateValue(ExcelSheet.Cells(33).Value)
 	Call doc.Replaceitemvalue("DateVnesenieOGRN", tmp)
@@ -492,6 +493,66 @@ Function fillogrn(i%, unidorg$, opf$, pn$, kn$)
 	tmp = DateValue(ExcelSheet.Cells(32).Value)
 	Call doc.Replaceitemvalue("DateRegPredpr", tmp)
 	
+	Call doc.Save(True, True, True)
+	REM +++++++++++++++++++++++++++++
+	GoTo endh
+handler:
+	ExcelApp.DisplayAlerts = False
+	ExcelApp.Quit
+	Dim strError As String
+	strError = " Ошибка в { функции FillEgrul}, строка " + CStr(Erl) + Chr(10) + Error$
+	'Error Err, strError
+	MsgBox strError
+	End
+endh:	
+End Function
+
+%REM
+	Function fillinn
+	Description: Comments for Function
+%END REM
+Function fillinn(i%, unidorg$, opf$, pn$, kn$)
+	On Error GoTo handler 'обработчик ошибок
+	REM +++++++++++++++++++++++++++++		
+	Dim tmp$, unid$
+	Dim doc As NotesDocument	
+	
+	' Определяем БД
+	Set db = s.Currentdatabase
+	' Создаем документ в БД
+	Set doc = db.Createdocument()	
+	
+	' UNID doc
+	unid =  doc.Universalid 
+	Call doc.Replaceitemvalue("UNID", unid)
+	' Определяем имя формы
+	Call doc.Replaceitemvalue("Form", "22212SvidOPrisvoenii")
+	' OrgChlenSROTName
+	Call doc.Replaceitemvalue("OrgChlenSROТName", pn)	
+	' OrgChlenSROUNID
+	Call doc.Replaceitemvalue("OrgChlenSROUNID", unidorg)
+	' OrgChlenSROTName
+	Call doc.Replaceitemvalue("OrgChlenSROТNameShow", kn)	
+	
+	'Наим дока
+	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "Свидетельство о постановке на налоговый учет юридического лица")
+	'ИНН
+	tmp = Val(ExcelSheet.Cells(2).Value)
+	Call doc.Replaceitemvalue("INN", tmp)
+	'КПП
+	tmp = Val(ExcelSheet.Cells(21).Value)
+	Call doc.Replaceitemvalue("KPP", tmp)
+	'Кем выдано
+	Call doc.Replaceitemvalue("KemVidano", kn)	
+	'Дата постановки на учет
+	tmp = ExcelSheet.Cells(33).Value
+	If tmp="" Then
+		tmp = DateValue(ExcelSheet.Cells(32).Value)
+	Else
+	tmp = DateValue(tmp)	
+	End If	
+	Call doc.Replaceitemvalue("DatePostanovki", tmp)
+		
 	Call doc.Save(True, True, True)
 	REM +++++++++++++++++++++++++++++
 	GoTo endh
