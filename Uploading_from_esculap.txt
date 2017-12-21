@@ -1,7 +1,7 @@
 %REM
-	Agent Data Uploading from esculap
+	Agent Uploading from esculap
 	Created 20/12/2017 Dmitry Skoblikov
-
+	Description: Comments for Agent
 %END REM
 Option Public
 Option Declare
@@ -66,10 +66,11 @@ endh:
 End Sub
 
 REM Головная форма Процесс-OrgChlenSRO
-Function FillProcess(i As Integer)
+Function FillRuk(i As Integer, unidorg$, opf$, pn$, kn$)
 	On Error GoTo handler 'обработчик ошибок
 	REM +++++++++++++++++++++++++++++	
-	Dim unidorg$, tmp$, tmp2$, opf$, pn$, kn$, datecrt$
+	Dim unid$, tmp$, opffull$, y%, m%, d%, data$
+	Dim tmp2 As Variant
 	Dim doc As NotesDocument
 	
 	' Обращение к листу
@@ -81,72 +82,63 @@ Function FillProcess(i As Integer)
 	' Определяем БД
 	Set db = s.Currentdatabase
 	' Создаем документ в БД
-	Set doc = db.Createdocument()
+	Set doc = db.Createdocument()	
 	
-	' Заполняем UNID
-	unidorg =  doc.Universalid 
-	Call doc.Replaceitemvalue("UNID", unidorg)
+	' UNID doc
+	unid =  doc.Universalid 
+	Call doc.Replaceitemvalue("UNID", unid)
 	' Определяем имя формы
-	Call doc.Replaceitemvalue("Form", "OrgChlenSRO")
-	' Ставим действующую организацию
-	Call doc.Replaceitemvalue("OrgStatus", "2" )
-	Call doc.Replaceitemvalue("FromCandidatToChlen", "1" )
-	
-	' Полное наим орг
-	' ОПФ
-	opf = ExcelSheet.Cells(i,6).Value
-	opf = FullTrim(opf)
-	' Часть полн. наименования
-	pn = ExcelSheet.Cells(i,9).Value
-	pn = FullTrim(pn)
-	
-	pn = opf + " " + pn
+	Call doc.Replaceitemvalue("Form", "22217ProtokolNaznachRukov")
+	' OrgChlenSROTName
 	Call doc.Replaceitemvalue("OrgChlenSROТName", pn)	
-	Call doc.Replaceitemvalue("PolnoeNaimenovanieOrg", pn)
+	' OrgChlenSROUNID
+	Call doc.Replaceitemvalue("OrgChlenSROUNID", unidorg)
+	Print unidorg
+	' OrgChlenSROTName
+	Call doc.Replaceitemvalue("OrgChlenSROТNameShow", kn)	
 	
-	' Краткое наименование
-	kn = ExcelSheet.Cells(i,10).Value
-	kn = FullTrim(kn)
-	
-	kn = opf + " " + kn
-	Call doc.Replaceitemvalue("OrgChlenSROТName_1", kn)	
-	
-	'Дата вступления
-	datecrt = DateValue(ExcelSheet.Cells(i,22).Value)
-	Call doc.Replaceitemvalue("DatePrinVNP", datecrt)	
-	
-	'Номер решения
-	tmp = Val(ExcelSheet.Cells(i,23).Value)
-	Call doc.Replaceitemvalue("NumResh", tmp)
-	
-	'Дата рег в реестре СРО
-	tmp = DateValue(ExcelSheet.Cells(i,24).Value)
-	Call doc.Replaceitemvalue("DateRegistr", tmp)
-	
-	' Номер рег записи
-	tmp = ExcelSheet.Cells(i,1).Value
-	tmp = FullTrim(tmp)
-	Call doc.Replaceitemvalue("NomerRegistracionnojZapisi", tmp)
-
-	Call doc.Save(True, True, True)
-	
-	REM Запускаем функцию заполн анкеты
-	Call FillAnk(i, unidorg, opf, pn, kn, datecrt)
-	Call FillRuk(i, unidorg, opf, pn, kn)
+	'Наим дока
+	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "Протокол")
+	'Дата дока
+	Call doc.Replaceitemvalue("DataPodachiDokumenta", Today())
+	' Кем выдано, Краткое наим
+	Call doc.Replaceitemvalue("KemVidano", kn)
+	' ФИО
+	tmp = ExcelSheet.Cells(i,11).Value
+	tmp2 = Split(tmp, " ")
+	'Фам рук
+	Call doc.Replaceitemvalue("Fam", tmp2(0))
+	Print tmp2(0)	
+	'Имя рук
+	Call doc.Replaceitemvalue("Name", tmp2(1))
+	'Отч рук
+	Call doc.Replaceitemvalue("Otchstvo", tmp2(2))
+	'Должность рук
+	tmp = ExcelSheet.Cells(i,12).Value
+	Call doc.Replaceitemvalue("Dolzhnost", tmp)	
+	'Дата полномочий
+	Call doc.Replaceitemvalue("DatePolnOt", DateNumber(Year(Today()),Month(Today()), Day(Today)))	
+	'Дата окончаний полном
+	y = Val(Year(Today()))+Val(3)
+	m = Month(Today())
+	d = Day(Today())
+	data = DateNumber(y, m, d)
+	Print data
+	Call doc.Replaceitemvalue("DatePolnDo",data)
+	'Общее кол во лет полномочий - 3 по умолчанию
+	Call doc.Replaceitemvalue("DatePoln", "3")
+	'Дата действия дока и полномочий
+	Call doc.Replaceitemvalue("DeistvieData", data)
+	Call doc.Save(True, True, True)		
 	REM +++++++++++++++++++++++++++++
 	GoTo endh
 handler:
-	ExcelApp.DisplayAlerts = False
-	ExcelApp.Quit
-	Dim strError As String
-	strError = " Ошибка в { функции FillProcess}, строка " + CStr(Erl) + Chr(10) + Error$
+	strError = " Ошибка в { функции FillAnk}, строка " + CStr(Erl) + Chr(10) + Error$
 	'Error Err, strError
 	MsgBox strError
 	End
 endh:
-End Function
-
-
+End Function		
 REM Анкета
 Function FillAnk(i As Integer, unidorg$, opf$, pn$, kn$, datecrt$ )
 	On Error GoTo handler 'обработчик ошибок
@@ -219,28 +211,10 @@ Function FillAnk(i As Integer, unidorg$, opf$, pn$, kn$, datecrt$ )
 	'Банкротство
 	Call doc.Replaceitemvalue("Bankrot", "нет")	
 	
+	Call doc.Replaceitemvalue("DeistvieData", DateNumber(2018,4,1))	
+	
 	Call doc.Save(True, True, True)	
 	
-	%REM	
-	' ОПФ
-	Call doc_ank.Replaceitemvalue("", opf)
-	
-	If opf = "ОАО" Then
-		opffull = "Откртытое акционерное общество" 
-	ElseIf opf = "ЗАО" Then
-		opffull = "Закртытое акционерное общество"
-	ElseIf opf = "АО" Then
-		opffull = "Акционерное общество"	
-	ElseIf opf = "ООО" Then
-		opffull = "Общество с ограниченной ответственностью"	
-	ElseIf opf = "ГУП" Then
-		opffull = "Государственное унитарное предприятие"		
-	End If
-	Call doc_ank.Replaceitemvalue("", opffull)
-	
-	' Год основания
-	Call doc_ank.Replaceitemvalue("IPBornDate", tmp)
-	%END REM	
 	REM +++++++++++++++++++++++++++++
 	GoTo endh
 handler:
@@ -252,13 +226,96 @@ handler:
 endh:
 End Function	
 REM Протокол назн руководителя
-Function FillRuk(i As Integer, unidorg$, opf$, pn$, kn$)
+Function FillProcess(i As Integer)
 	On Error GoTo handler 'обработчик ошибок
 	REM +++++++++++++++++++++++++++++	
-	Dim unid$, tmp$, opffull$, y%, m%, d%, data$
-	Dim tmp2 As Variant
+	Dim unidorg$, tmp$, tmp2$, opf$, pn$, kn$, datecrt$
 	Dim doc As NotesDocument
 	
+	' Обращение к листу
+	On Error Resume Next
+	Set ExcelSheet = ExcelApp.Workbooks(1).Worksheets(1)
+	If Err()<>0 Then Err=0 : Print "Ошибка ExcelApp.Workbooks(1).Worksheets(1) при открытии " : GoTo endh
+	On Error GoTo handler
+	
+	' Определяем БД
+	Set db = s.Currentdatabase
+	' Создаем документ в БД
+	Set doc = db.Createdocument()
+	
+	' Заполняем UNID
+	unidorg =  doc.Universalid 
+	Call doc.Replaceitemvalue("UNID", unidorg)
+	' Определяем имя формы
+	Call doc.Replaceitemvalue("Form", "OrgChlenSRO")
+	' Ставим действующую организацию
+	Call doc.Replaceitemvalue("OrgStatus", "2" )
+	Call doc.Replaceitemvalue("FromCandidatToChlen", "1" )
+	
+	' Полное наим орг
+	' ОПФ
+	opf = ExcelSheet.Cells(i,6).Value
+	opf = FullTrim(opf)
+	' Часть полн. наименования
+	pn = ExcelSheet.Cells(i,9).Value
+	pn = FullTrim(pn)
+	
+	pn = opf + " " + pn
+	Call doc.Replaceitemvalue("OrgChlenSROТName", pn)	
+	Call doc.Replaceitemvalue("PolnoeNaimenovanieOrg", pn)
+	
+	' Краткое наименование
+	kn = ExcelSheet.Cells(i,10).Value
+	kn = FullTrim(kn)
+	
+	kn = opf + " " + kn
+	Call doc.Replaceitemvalue("OrgChlenSROТName_1", kn)	
+	
+	'Дата вступления
+	datecrt = DateValue(ExcelSheet.Cells(i,22).Value)
+	Call doc.Replaceitemvalue("DatePrinVNP", datecrt)	
+	
+	'Номер решения
+	tmp = Val(ExcelSheet.Cells(i,23).Value)
+	Call doc.Replaceitemvalue("NumResh", tmp)
+	
+	'Дата рег в реестре СРО
+	tmp = DateValue(ExcelSheet.Cells(i,24).Value)
+	Call doc.Replaceitemvalue("DateRegistr", tmp)
+	
+	' Номер рег записи
+	tmp = ExcelSheet.Cells(i,1).Value
+	tmp = FullTrim(tmp)
+	Call doc.Replaceitemvalue("NomerRegistracionnojZapisi", tmp)
+
+	Call doc.Save(True, True, True)
+	
+	REM Запускаем функцию заполн анкеты
+	Call FillAnk(i, unidorg, opf, pn, kn, datecrt)
+	Call FillRuk(i, unidorg, opf, pn, kn)
+	Call FillEgrul(i, unidorg, opf, pn, kn)
+	
+	REM +++++++++++++++++++++++++++++
+	GoTo endh
+handler:
+	ExcelApp.DisplayAlerts = False
+	ExcelApp.Quit
+	Dim strError As String
+	strError = " Ошибка в { функции FillProcess}, строка " + CStr(Erl) + Chr(10) + Error$
+	'Error Err, strError
+	MsgBox strError
+	End
+endh:
+End Function
+
+REM	Function FillEgrul
+
+Function FillEgrul(i%, unidorg$, opf$, pn$, kn$)
+	On Error GoTo handler 'обработчик ошибок
+	REM +++++++++++++++++++++++++++++		
+	Dim j%, tmp$, unid$, opffull$, uradr As Variant
+	Dim doc As NotesDocument
+	j=0
 	' Обращение к листу
 	On Error Resume Next
 	Set ExcelSheet = ExcelApp.Workbooks(1).Worksheets(1)
@@ -274,7 +331,7 @@ Function FillRuk(i As Integer, unidorg$, opf$, pn$, kn$)
 	unid =  doc.Universalid 
 	Call doc.Replaceitemvalue("UNID", unid)
 	' Определяем имя формы
-	Call doc.Replaceitemvalue("Form", "22217ProtokolNaznachRukov")
+	Call doc.Replaceitemvalue("Form", "22226VypiskaIzEGRJuL")
 	' OrgChlenSROTName
 	Call doc.Replaceitemvalue("OrgChlenSROТName", pn)	
 	' OrgChlenSROUNID
@@ -284,43 +341,131 @@ Function FillRuk(i As Integer, unidorg$, opf$, pn$, kn$)
 	Call doc.Replaceitemvalue("OrgChlenSROТNameShow", kn)	
 	
 	'Наим дока
-	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "Протокол")
-	'Дата дока
-	Call doc.Replaceitemvalue("DataPodachiDokumenta", Today())
-	' Кем выдано, Краткое наим
-	Call doc.Replaceitemvalue("KemVidano", kn)
-	' ФИО
-	tmp = ExcelSheet.Cells(i,11).Value
-	tmp2 = Split(tmp, " ")
-	'Фам рук
-	Call doc.Replaceitemvalue("Fam", tmp2(0))
-	Print tmp2(0)	
-	'Имя рук
-	Call doc.Replaceitemvalue("Name", tmp2(1))
-	'Отч рук
-	Call doc.Replaceitemvalue("Otchstvo", tmp2(2))
-	'Должность рук
-	tmp = ExcelSheet.Cells(i,12).Value
-	Call doc.Replaceitemvalue("Dolzhnost", tmp)	
-	'Дата полномочий
-	Call doc.Replaceitemvalue("DatePolnOt", DateNumber(Year(Today()),Month(Today()), Day(Today)))	
-	'Дата окончаний полном
-	y = Val(Year(Today()))+Val(3)
-	m = Month(Today())
-	d = Day(Today())
-	data = DateNumber(y, m, d)
-	Print data
-	Call doc.Replaceitemvalue("DatePolnDo",data)
-	'Общее кол во лет полномочий - 3 по умолчанию
-	Call doc.Replaceitemvalue("DatePoln", "3")
+	Call doc.Replaceitemvalue("ObrazovanieNaimenDoc", "Лист записи")
+	'Кому выдан
+	Call doc.Replaceitemvalue("KomuVydan", kn)	
+	'Дата выдачи
+	Call doc.Replaceitemvalue("Date", Today())	
+	'ОПФ полное
+
+	' ОПФ
+	If opf = "ОАО" Then
+		opffull = "Откртытое акционерное общество" 
+	ElseIf opf = "ЗАО" Then
+		opffull = "Закртытое акционерное общество"
+	ElseIf opf = "АО" Then
+		opffull = "Акционерное общество"	
+	ElseIf opf = "ООО" Then
+		opffull = "Общество с ограниченной ответственностью"	
+	ElseIf opf = "ГУП" Then
+		opffull = "Государственное унитарное предприятие"		
+	End If
+	Call doc.Replaceitemvalue("OPF", opffull)
+	'ОПФ краткое
+	Call doc.Replaceitemvalue("OPFmin", opf)	
+	'Полное наим
+	Call doc.Replaceitemvalue("FullName", pn)
+	'Крат наим
+	Call doc.Replaceitemvalue("CropName", kn)
+	'Наим органа - ген дир
+	Call doc.Replaceitemvalue("Organ", "Генеральный директор")
+	'-----Юр адрес-----
+	tmp = ExcelSheet.Cells(i,37).Value
+	uradr = Split(tmp, ",")
+	'Индекс	
+	Call doc.Replaceitemvalue("Indeks", uradr(j))
+	'Страна
+	j=j+1
+	Call doc.Replaceitemvalue("Strana", Trim(uradr(j)))
+	'Субъект
+	j=j+1
+	Call doc.Replaceitemvalue("SubjectRF", Trim(uradr(j)))
+	'Город
+	j=j+1
+	If Left(Trim(uradr(j)),1)="г" or Left(Trim(uradr(j)),3)="пос" Then
+		Call doc.Replaceitemvalue("City", Trim(uradr(j)))
+		'Улица
+		j=j+1
+		If j>UBound(uradr) Then
+			Call doc.Replaceitemvalue("Street", "")
+			else
+			Call doc.Replaceitemvalue("Street", Trim(uradr(j)))
+		End If		
+		
+		'Дом
+		j=j+1
+		If j>UBound(uradr) Then
+			Call doc.Replaceitemvalue("Dom", "")
+		Else
+			Call doc.Replaceitemvalue("Dom", Trim(uradr(j)))
+		End If		
+		'Корпус
+		j=j+1
+		If j>UBound(uradr) Then
+			Call doc.Replaceitemvalue("Korpus", "")
+		Else
+			Call doc.Replaceitemvalue("Korpus", Trim(uradr(j)))
+		End If			
+		'Квартира
+		j=j+1
+		If j>UBound(uradr) Then
+			Call doc.Replaceitemvalue("Kvartira", "")
+		Else
+			Call doc.Replaceitemvalue("Kvartira", Trim(uradr(j)))
+		End If			
+	Else
+		j = 2
+		Call doc.Replaceitemvalue("City", Trim(uradr(j)))
+		'Улица
+		j=j+1
+		If j>UBound(uradr) Then
+			Call doc.Replaceitemvalue("Street", "")
+		Else
+			Call doc.Replaceitemvalue("Street", Trim(uradr(j)))
+		End If				
+		'Дом
+		j=j+1
+		If j>UBound(uradr) Then
+			Call doc.Replaceitemvalue("Dom", "")
+		Else
+			Call doc.Replaceitemvalue("Dom", Trim(uradr(j)))
+		End If		
+		'Корпус	
+		j=j+1
+		If j>UBound(uradr) Then
+			Call doc.Replaceitemvalue("Korpus", "")
+		Else
+			Call doc.Replaceitemvalue("Korpus", Trim(uradr(j)))
+		End If			
+		'Квартира
+		j=j+1
+		If j>UBound(uradr) Then
+			Call doc.Replaceitemvalue("Kvartira", "")
+		Else
+			Call doc.Replaceitemvalue("Kvartira", Trim(uradr(j)))
+		End If		
+	End If
+	'Тлф
+	tmp = ExcelSheet.Cells(i,15).Value
+	Call doc.Replaceitemvalue("Tel", tmp)
+	'Факс
+	tmp = ExcelSheet.Cells(i,16).Value
+	Call doc.Replaceitemvalue("Fax", tmp)
 	
-	Call doc.Save(True, True, True)		
+	'Дата действия
+	Call doc.Replaceitemvalue("DeistvieData", DateNumber(2018,4,1))
+	
+	Call doc.Save(True, True, True)	
+
 	REM +++++++++++++++++++++++++++++
 	GoTo endh
 handler:
-	strError = " Ошибка в { функции FillRuk}, строка " + CStr(Erl) + Chr(10) + Error$
+	ExcelApp.DisplayAlerts = False
+	ExcelApp.Quit
+	Dim strError As String
+	strError = " Ошибка в { функции FillEgrul}, строка " + CStr(Erl) + Chr(10) + Error$
 	'Error Err, strError
 	MsgBox strError
 	End
 endh:
-End Function		
+End Function
