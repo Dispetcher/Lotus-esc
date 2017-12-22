@@ -31,7 +31,7 @@ Sub Initialize
 
 	REM +++
 	' Выбираем файл для открытия
-	ret = ws.Openfiledialog(false, "Выбор файла", "Excel_2013|*.xlsx|Excel_2010|*.xls", "D:\", )
+	ret = ws.Openfiledialog(False, "Выбор файла", "Excel_2013|*.xlsx|Excel_2010|*.xls", "D:\", )
 	If IsEmpty(ret) Then GoTo endh
 	path = ret(0)
 		
@@ -67,10 +67,10 @@ handler:
 	Error Err, strError
 endh:
 End Sub
-
-REM Головная форма Процесс-OrgChlenSRO
-REM	Function FillEgrul
-
+%REM
+	Function fillegrul 21/12/17
+	Description: ЕГРЮЛ
+%END REM
 Function FillEgrul(i%, unidorg$, opf$, pn$, kn$)
 	On Error GoTo handler 'обработчик ошибок
 	REM +++++++++++++++++++++++++++++		
@@ -83,17 +83,10 @@ Function FillEgrul(i%, unidorg$, opf$, pn$, kn$)
 	' Создаем документ в БД
 	Set doc = db.Createdocument()	
 	
-	' UNID doc
-	unid =  doc.Universalid 
-	Call doc.Replaceitemvalue("UNID", unid)
+	Call header(doc, pn, unidorg, kn)
 	' Определяем имя формы
 	Call doc.Replaceitemvalue("Form", "22226VypiskaIzEGRJuL")
-	' OrgChlenSROTName
-	Call doc.Replaceitemvalue("OrgChlenSROТName", pn)	
-	' OrgChlenSROUNID
-	Call doc.Replaceitemvalue("OrgChlenSROUNID", unidorg)
-	' OrgChlenSROTName
-	Call doc.Replaceitemvalue("OrgChlenSROТNameShow", kn)	
+	
 	
 	'Наим дока
 	Call doc.Replaceitemvalue("ObrazovanieNaimenDoc", "Лист записи")
@@ -137,13 +130,13 @@ Function FillEgrul(i%, unidorg$, opf$, pn$, kn$)
 	Call doc.Replaceitemvalue("SubjectRF", Trim(uradr(j)))
 	'Город
 	j=j+1
-	If Left(Trim(uradr(j)),1)="г" or Left(Trim(uradr(j)),3)="пос" Then
+	If Left(Trim(uradr(j)),1)="г" Or Left(Trim(uradr(j)),3)="пос" Then
 		Call doc.Replaceitemvalue("City", Trim(uradr(j)))
 		'Улица
 		j=j+1
 		If j>UBound(uradr) Then
 			Call doc.Replaceitemvalue("Street", "")
-			else
+			Else
 			Call doc.Replaceitemvalue("Street", Trim(uradr(j)))
 		End If		
 		
@@ -224,7 +217,10 @@ handler:
 	End
 endh:
 End Function
-
+%REM
+	Function fillinn 21/12/17
+	Description: Протокол назначения руководителя
+%END REM
 Function FillRuk(i As Integer, unidorg$, opf$, pn$, kn$)
 	On Error GoTo handler 'обработчик ошибок
 	REM +++++++++++++++++++++++++++++	
@@ -237,17 +233,9 @@ Function FillRuk(i As Integer, unidorg$, opf$, pn$, kn$)
 	' Создаем документ в БД
 	Set doc = db.Createdocument()	
 	
-	' UNID doc
-	unid =  doc.Universalid 
-	Call doc.Replaceitemvalue("UNID", unid)
+	Call header(doc, pn, unidorg, kn)
 	' Определяем имя формы
 	Call doc.Replaceitemvalue("Form", "22217ProtokolNaznachRukov")
-	' OrgChlenSROTName
-	Call doc.Replaceitemvalue("OrgChlenSROТName", pn)	
-	' OrgChlenSROUNID
-	Call doc.Replaceitemvalue("OrgChlenSROUNID", unidorg)
-	' OrgChlenSROTName
-	Call doc.Replaceitemvalue("OrgChlenSROТNameShow", kn)	
 	
 	'Наим дока
 	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "Протокол")
@@ -292,8 +280,8 @@ handler:
 endh:
 End Function		
 %REM
-	Function fillinn
-	Description: Comments for Function
+	Function fillinn 21/12/17
+	Description: ИНН
 %END REM
 Function fillinn(i%, unidorg$, opf$, pn$, kn$)
 	On Error GoTo handler 'обработчик ошибок
@@ -306,17 +294,9 @@ Function fillinn(i%, unidorg$, opf$, pn$, kn$)
 	' Создаем документ в БД
 	Set doc = db.Createdocument()	
 	
-	' UNID doc
-	unid =  doc.Universalid 
-	Call doc.Replaceitemvalue("UNID", unid)
+	Call header(doc, pn, unidorg, kn)
 	' Определяем имя формы
 	Call doc.Replaceitemvalue("Form", "22212SvidOPrisvoenii")
-	' OrgChlenSROTName
-	Call doc.Replaceitemvalue("OrgChlenSROТName", pn)	
-	' OrgChlenSROUNID
-	Call doc.Replaceitemvalue("OrgChlenSROUNID", unidorg)
-	' OrgChlenSROTName
-	Call doc.Replaceitemvalue("OrgChlenSROТNameShow", kn)	
 	
 	'Наим дока
 	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "Свидетельство о постановке на налоговый учет юридического лица")
@@ -351,8 +331,8 @@ handler:
 endh:	
 End Function
 %REM
-	Function fillogrn
-	Description: Comments for Function
+	Function fillogrn 21/12/17
+	Description: ОГРН
 %END REM
 Function fillogrn(i%, unidorg$, opf$, pn$, kn$)
 	On Error GoTo handler 'обработчик ошибок
@@ -365,19 +345,10 @@ Function fillogrn(i%, unidorg$, opf$, pn$, kn$)
 	' Создаем документ в БД
 	Set doc = db.Createdocument()	
 	
-	' UNID doc
-	unid =  doc.Universalid 
-	Call doc.Replaceitemvalue("UNID", unid)
+	Call header(doc, pn, unidorg, kn)
 	' Определяем имя формы
 	Call doc.Replaceitemvalue("Form", "22211SvidPrisvoenOGRN")
-	' OrgChlenSROTName
-	Call doc.Replaceitemvalue("OrgChlenSROТName", pn)	
-	' OrgChlenSROUNID
-	Call doc.Replaceitemvalue("OrgChlenSROUNID", unidorg)
-	' OrgChlenSROTName
-	Call doc.Replaceitemvalue("OrgChlenSROТNameShow", kn)	
-	
-	
+		
 	'Наим дока
 	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "Свидетельство о государственной регистрации юридического лица")
 	'ОГРН
@@ -410,8 +381,10 @@ handler:
 	End
 endh:	
 End Function
-
-REM Анкета
+%REM
+	Function fillank 20/12/17
+	Description: Анкета
+%END REM
 Function FillAnk(i As Integer, unidorg$, opf$, pn$, kn$, datecrt$ )
 	On Error GoTo handler 'обработчик ошибок
 	REM +++++++++++++++++++++++++++++	
@@ -424,17 +397,9 @@ Function FillAnk(i As Integer, unidorg$, opf$, pn$, kn$, datecrt$ )
 	' Создаем документ в БД
 	Set doc = db.Createdocument()	
 
-	' UNID doc
-	unid =  doc.Universalid 
-	Call doc.Replaceitemvalue("UNID", unid)
+	Call header(doc, pn, unidorg, kn)
 	' Определяем имя формы
 	Call doc.Replaceitemvalue("Form", "2214Anketa")
-	' OrgChlenSROTName
-	Call doc.Replaceitemvalue("OrgChlenSROТName", pn)	
-	' OrgChlenSROUNID
-	Call doc.Replaceitemvalue("OrgChlenSROUNID", unidorg)
-	' OrgChlenSROTName
-	Call doc.Replaceitemvalue("OrgChlenSROТNameShow", kn)	
 	
 	'Наим документа
 	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "Сведения об организации")	
@@ -492,7 +457,10 @@ handler:
 	End
 endh:
 End Function	
-REM Протокол назн руководителя
+%REM
+	Function fillinn 20/12/17
+	Description: Головная форма Процесс-OrgChlenSRO
+%END REM
 Function FillProcess(i As Integer)
 	On Error GoTo handler 'обработчик ошибок
 	REM +++++++++++++++++++++++++++++	
@@ -505,6 +473,8 @@ Function FillProcess(i As Integer)
 	' Создаем документ в БД
 	Set doc = db.Createdocument()
 	
+	
+	
 	' Заполняем UNID
 	unidorg =  doc.Universalid 
 	Call doc.Replaceitemvalue("UNID", unidorg)
@@ -513,6 +483,7 @@ Function FillProcess(i As Integer)
 	' Ставим действующую организацию
 	Call doc.Replaceitemvalue("OrgStatus", "2" )
 	Call doc.Replaceitemvalue("FromCandidatToChlen", "1" )
+
 	
 	' Полное наим орг
 	' ОПФ
@@ -569,4 +540,33 @@ handler:
 	MsgBox strError
 	End
 endh:
+End Function
+%REM
+	Function header 22/12/2017
+	Description: Заполнение шапки каждого документа
+%END REM
+Function header(doc As NotesDocument, pn$, unidorg$, kn$)
+	On Error GoTo handler 'обработчик ошибок
+	REM ----
+	Dim unid$
+	
+	' UNID doc
+	unid =  doc.Universalid 
+	Call doc.Replaceitemvalue("UNID", unid)
+	' OrgChlenSROTName
+	Call doc.Replaceitemvalue("OrgChlenSROТName", pn)	
+	' OrgChlenSROUNID
+	Call doc.Replaceitemvalue("OrgChlenSROUNID", unidorg)
+	' OrgChlenSROTName
+	Call doc.Replaceitemvalue("OrgChlenSROТNameShow", kn)	
+	
+	REM ----
+	GoTo endh
+handler:
+	strError = " Ошибка в { функции FillAnk}, строка " + CStr(Erl) + Chr(10) + Error$
+	'Error Err, strError
+	MsgBox strError
+	End
+endh:
+	
 End Function
