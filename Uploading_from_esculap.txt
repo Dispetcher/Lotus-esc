@@ -678,7 +678,7 @@ Function filllevelotv(i%, unidorg$, opf$, pn$, kn$)
 	'Ур ответ по ОДО
 	tmp = Trim(ExcelSheet.Cells(i,76).Value)
 	Call doc.Replaceitemvalue("KFODO_UrovnOtvetstvNum", tmp)
-	'Макс сумма по ВВ
+	'Макс сумма по ОДО
 	Select Case tmp
 		Case "Первый" 
 			Call doc.Replaceitemvalue("KFODO_StoimostDogovora", "не превышает 60 млн. руб.")
