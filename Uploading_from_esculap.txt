@@ -481,15 +481,15 @@ Function fillogrn(i%, unidorg$, opf$, pn$, kn$)
 	'Наим дока
 	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "Свидетельство о государственной регистрации юридического лица")
 	'ОГРН
-	tmp = Val(ExcelSheet.Cells(20).Value)
+	tmp = Val(ExcelSheet.Cells(i,20).Value)
 	Call doc.Replaceitemvalue("OGRN", tmp)
 	'Кому выдано
 	Call doc.Replaceitemvalue("KomuVydan", kn)	
 	'Дата внесения ОГРН
-	tmp = DateValue(ExcelSheet.Cells(33).Value)
+	tmp = DateValue(ExcelSheet.Cells(i,33).Value)
 	Call doc.Replaceitemvalue("DateVnesenieOGRN", tmp)
 	'Дата рег предприятия
-	tmp = DateValue(ExcelSheet.Cells(32).Value)
+	tmp = DateValue(ExcelSheet.Cells(i,32).Value)
 	Call doc.Replaceitemvalue("DateRegPredpr", tmp)
 	
 	Call doc.Save(True, True, True)
