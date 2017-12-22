@@ -248,7 +248,6 @@ Function FillRuk(i As Integer, unidorg$, opf$, pn$, kn$)
 	tmp2 = Split(tmp, " ")
 	'Фам рук
 	Call doc.Replaceitemvalue("Fam", tmp2(0))
-	Print tmp2(0)	
 	'Имя рук
 	Call doc.Replaceitemvalue("Name", tmp2(1))
 	'Отч рук
@@ -263,7 +262,6 @@ Function FillRuk(i As Integer, unidorg$, opf$, pn$, kn$)
 	m = Month(Today())
 	d = Day(Today())
 	data = DateNumber(y, m, d)
-	Print data
 	Call doc.Replaceitemvalue("DatePolnDo",data)
 	'Общее кол во лет полномочий - 3 по умолчанию
 	Call doc.Replaceitemvalue("DatePoln", "3")
@@ -279,6 +277,7 @@ handler:
 	End
 endh:
 End Function		
+
 %REM
 	Function fillinn 21/12/17
 	Description: ИНН
@@ -528,13 +527,14 @@ Function FillProcess(i As Integer)
 
 	Call doc.Save(True, True, True)
 	
-	REM Запускаем функцию заполн анкеты
+	REM Запускаем функцию заполн документов
 	Call FillAnk(i, unidorg, opf, pn, kn, datecrt)
 	Call FillRuk(i, unidorg, opf, pn, kn)
 	Call FillEgrul(i, unidorg, opf, pn, kn)
 	Call Fillogrn(i, unidorg, opf, pn, kn)
 	Call Fillinn(i, unidorg, opf, pn, kn)
 	Call Filllicense(i, unidorg, opf, pn, kn)
+	Call Filllevelotv(i, unidorg, opf, pn, kn)
 	REM +++++++++++++++++++++++++++++
 	GoTo endh
 handler:
@@ -584,11 +584,19 @@ End Function
 Function filllicense(i%, unidorg$, opf$, pn$, kn$)
 	On Error GoTo handler 'обработчик ошибок
 	REM +++++++++++++++++++++++++++++		
-	Dim tmp$, unid$
-	Dim doc As NotesDocument	
+	Dim tmp$, tmp2$, unid$, j%, n%
+	Dim doc As NotesDocument
+	Dim arr, tmparr As Variant	
 	
 	' Определяем БД
 	Set db = s.Currentdatabase
+	
+	'Запускаем цикл по эл-там массива из лицензий
+	tmp = ExcelSheet.Cells(i,34).Value
+	arr = Split(tmp, "№")
+	n = UBound(arr)
+	
+	For j=1 To UBound(arr)
 	' Создаем документ в БД
 	Set doc = db.Createdocument()	
 	
@@ -598,13 +606,97 @@ Function filllicense(i%, unidorg$, opf$, pn$, kn$)
 	
 	'Наим дока
 	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "Лицензия")
-	'Дата выдачи - сегодня
-	Call doc.Replaceitemvalue("DataVydachi", Today())
 	'Номер лицензии
-	tmp = ExcelSheet.Cells(i,34)
-	Call doc.Replaceitemvalue("Licenz_Nomer", tmp)
+	tmparr = Split(arr(j), "от")
+	Call doc.Replaceitemvalue("Licenz_Nomer", "№ " + tmparr(0))
+	'Дата выдачи - сегодня
+	tmp2 = tmparr(1)
+	Call doc.Replaceitemvalue("DataVydachi", tmp2)
 	'Статус лицензии - прекращено
 	Call doc.Replaceitemvalue("ViewLicense", "Прекращено")
+	
+	Call doc.Save(True, True, True)
+Next j
+	
+	
+	REM +++++++++++++++++++++++++++++
+	GoTo endh
+handler:
+	ExcelApp.DisplayAlerts = False
+	ExcelApp.Quit
+	Dim strError As String
+	strError = " Ошибка в { функции FillLicense}, строка " + CStr(Erl) + Chr(10) + Error$
+	'Error Err, strError
+	MsgBox strError
+	End
+endh:
+End Function
+%REM
+	Function filllevelotv 22/12/17
+	Description: Уровни ответственности
+%END REM
+Function filllevelotv(i%, unidorg$, opf$, pn$, kn$)
+	On Error GoTo handler 'обработчик ошибок
+	REM +++++++++++++++++++++++++++++		
+	Dim tmp$, tmp2$
+	Dim doc As NotesDocument	
+	
+	' Определяем БД
+	Set db = s.Currentdatabase
+	' Создаем документ в БД
+	Set doc = db.Createdocument()	
+	
+	Call header(doc, pn, unidorg, kn)
+	' Определяем имя формы
+	Call doc.Replaceitemvalue("Form", "2271ZayavUrovnOtvetstv")
+	
+	'Наим дока
+	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "Заявление об уровнях ответственности")
+	'Дата дока
+	Call doc.Replaceitemvalue("DocDate", Today())
+	'Уровент отв ВВ
+	tmp = Trim(ExcelSheet.Cells(i,75).Value)
+	Call doc.Replaceitemvalue("KFVV_UrovnOtvetstvNum", tmp)
+	'Макс сумма по ВВ
+	Select Case tmp
+		Case "Первый" 
+			Call doc.Replaceitemvalue("KFVV_StoimostDogovora", "не превышает 60 млн. руб.")
+			Call doc.Replaceitemvalue("KFVV_MinRazmerVznosa", 100000)
+		Case "Второй" 
+			Call doc.Replaceitemvalue("KFVV_StoimostDogovora", "не превышает 500 млн. руб.")
+			Call doc.Replaceitemvalue("KFVV_MinRazmerVznosa", 500000)
+		Case "Третий" 
+			Call doc.Replaceitemvalue("KFVV_StoimostDogovora", "не превышает 3 млрд. руб.")
+			Call doc.Replaceitemvalue("KFVV_MinRazmerVznosa", 1500000)
+		Case "Четвертый" 
+			Call doc.Replaceitemvalue("KFVV_StoimostDogovora", "не превышает 10 млрд. руб.")
+			Call doc.Replaceitemvalue("KFVV_MinRazmerVznosa", 2000000)
+		Case "Пятый" 
+			Call doc.Replaceitemvalue("KFVV_StoimostDogovora", "составляет 10 млрд. руб. и более")
+			Call doc.Replaceitemvalue("KFVV_MinRazmerVznosa", 5000000)
+	End Select
+	'Ур ответ по ОДО
+	tmp = Trim(ExcelSheet.Cells(i,76).Value)
+	Call doc.Replaceitemvalue("KFODO_UrovnOtvetstvNum", tmp)
+	'Макс сумма по ВВ
+	Select Case tmp
+		Case "Первый" 
+			Call doc.Replaceitemvalue("KFODO_StoimostDogovora", "не превышает 60 млн. руб.")
+			Call doc.Replaceitemvalue("KFODO_MinRazmerVznosa", 2000000)
+		Case "Второй" 
+			Call doc.Replaceitemvalue("KFODO_StoimostDogovora", "не превышает 500 млн. руб.")
+			Call doc.Replaceitemvalue("KFODO_MinRazmerVznosa", 25000000)
+		Case "Третий" 
+			Call doc.Replaceitemvalue("KFODO_StoimostDogovora", "не превышает 3 млрд. руб.")
+			Call doc.Replaceitemvalue("KFODO_MinRazmerVznosa", 45000000)
+		Case "Четвертый" 
+			Call doc.Replaceitemvalue("KFODO_StoimostDogovora", "не превышает 10 млрд. руб.")
+			Call doc.Replaceitemvalue("KFODO_MinRazmerVznosa", 70000000)
+		Case "Пятый" 
+			Call doc.Replaceitemvalue("KFODO_StoimostDogovora", "составляет 10 млрд. руб. и более")
+			Call doc.Replaceitemvalue("KFODO_MinRazmerVznosa", 25000000)
+	End Select
+	
 	
 	Call doc.Save(True, True, True)
 	REM +++++++++++++++++++++++++++++
@@ -613,7 +705,7 @@ handler:
 	ExcelApp.DisplayAlerts = False
 	ExcelApp.Quit
 	Dim strError As String
-	strError = " Ошибка в { функции Filllicense}, строка " + CStr(Erl) + Chr(10) + Error$
+	strError = " Ошибка в { функции Filllevelotv}, строка " + CStr(Erl) + Chr(10) + Error$
 	'Error Err, strError
 	MsgBox strError
 	End
