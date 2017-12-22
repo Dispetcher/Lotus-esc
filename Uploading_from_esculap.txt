@@ -257,7 +257,7 @@ Function FillRuk(i As Integer, unidorg$, opf$, pn$, kn$)
 	tmp = ExcelSheet.Cells(i,12).Value
 	Call doc.Replaceitemvalue("Dolzhnost", tmp)	
 	'Дата полномочий
-	Call doc.Replaceitemvalue("DatePolnOt", DateNumber(Year(Today()),Month(Today()), Day(Today)))	
+	Call doc.Replaceitemvalue("DatePolnOt", Today())	
 	'Дата окончаний полном
 	y = Val(Year(Today()))+Val(3)
 	m = Month(Today())
@@ -273,7 +273,7 @@ Function FillRuk(i As Integer, unidorg$, opf$, pn$, kn$)
 	REM +++++++++++++++++++++++++++++
 	GoTo endh
 handler:
-	strError = " Ошибка в { функции FillAnk}, строка " + CStr(Erl) + Chr(10) + Error$
+	strError = " Ошибка в { функции FillRuk}, строка " + CStr(Erl) + Chr(10) + Error$
 	'Error Err, strError
 	MsgBox strError
 	End
@@ -516,9 +516,14 @@ Function FillProcess(i As Integer)
 	tmp = DateValue(ExcelSheet.Cells(i,24).Value)
 	Call doc.Replaceitemvalue("DateRegistr", tmp)
 	
-	' Номер рег записи
+	' Номер рег записи - номер реестра
 	tmp = ExcelSheet.Cells(i,1).Value
 	tmp = FullTrim(tmp)
+	If Len(tmp)=1 Then
+		tmp = "00" + tmp
+	ElseIf Len(tmp)=2 Then
+		tmp = "0" + tmp
+	End If
 	Call doc.Replaceitemvalue("NomerRegistracionnojZapisi", tmp)
 
 	Call doc.Save(True, True, True)
@@ -529,6 +534,7 @@ Function FillProcess(i As Integer)
 	Call FillEgrul(i, unidorg, opf, pn, kn)
 	Call Fillogrn(i, unidorg, opf, pn, kn)
 	Call Fillinn(i, unidorg, opf, pn, kn)
+	Call Filllicense(i, unidorg, opf, pn, kn)
 	REM +++++++++++++++++++++++++++++
 	GoTo endh
 handler:
@@ -541,6 +547,7 @@ handler:
 	End
 endh:
 End Function
+
 %REM
 	Function header 22/12/2017
 	Description: Заполнение шапки каждого документа
@@ -563,10 +570,52 @@ Function header(doc As NotesDocument, pn$, unidorg$, kn$)
 	REM ----
 	GoTo endh
 handler:
-	strError = " Ошибка в { функции FillAnk}, строка " + CStr(Erl) + Chr(10) + Error$
+	strError = " Ошибка в { функции header}, строка " + CStr(Erl) + Chr(10) + Error$
 	'Error Err, strError
 	MsgBox strError
 	End
 endh:
 	
+End Function
+%REM
+	Function filllicense 22/12/17
+	Description: Лицензии
+%END REM
+Function filllicense(i%, unidorg$, opf$, pn$, kn$)
+	On Error GoTo handler 'обработчик ошибок
+	REM +++++++++++++++++++++++++++++		
+	Dim tmp$, unid$
+	Dim doc As NotesDocument	
+	
+	' Определяем БД
+	Set db = s.Currentdatabase
+	' Создаем документ в БД
+	Set doc = db.Createdocument()	
+	
+	Call header(doc, pn, unidorg, kn)
+	' Определяем имя формы
+	Call doc.Replaceitemvalue("Form", "22232LicenziiNaVidyRabot")
+	
+	'Наим дока
+	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "Лицензия")
+	'Дата выдачи - сегодня
+	Call doc.Replaceitemvalue("DataVydachi", Today())
+	'Номер лицензии
+	tmp = ExcelSheet.Cells(i,34)
+	Call doc.Replaceitemvalue("Licenz_Nomer", tmp)
+	'Статус лицензии - прекращено
+	Call doc.Replaceitemvalue("ViewLicense", "Прекращено")
+	
+	Call doc.Save(True, True, True)
+	REM +++++++++++++++++++++++++++++
+	GoTo endh
+handler:
+	ExcelApp.DisplayAlerts = False
+	ExcelApp.Quit
+	Dim strError As String
+	strError = " Ошибка в { функции Filllicense}, строка " + CStr(Erl) + Chr(10) + Error$
+	'Error Err, strError
+	MsgBox strError
+	End
+endh:
 End Function
