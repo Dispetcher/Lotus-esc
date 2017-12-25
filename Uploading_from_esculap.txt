@@ -214,7 +214,7 @@ handler:
 endh:
 End Function
 %REM
-	Function fillinn 21/12/17
+	Function fillruk 21/12/17
 	Description: Протокол назначения руководителя
 %END REM
 Function FillRuk(i As Integer, unidorg$, opf$, pn$, kn$)
@@ -326,7 +326,7 @@ handler:
 endh:	
 End Function
 %REM
-	Function fillinn 20/12/17
+	Function fillprocess 20/12/17
 	Description: Головная форма Процесс-OrgChlenSRO
 %END REM
 Function FillProcess(i As Integer)
