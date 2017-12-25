@@ -14,35 +14,35 @@ Dim s As NotesSession
 Dim strError As String
 
 Sub Initialize
-	On Error GoTo handler 'обработчик ошибок
+	On Error GoTo handler 'Г®ГЎГ°Г ГЎГ®ГІГ·ГЁГЄ Г®ГёГЁГЎГ®ГЄ
 	REM +++++++++++++++++++++++++++++
 	Dim ws As New NotesUIWorkspace
 	Dim ret, path$, i%
 
-	' Подключение к Excel
+	' ГЏГ®Г¤ГЄГ«ГѕГ·ГҐГ­ГЁГҐ ГЄ Excel
 	On Error Resume Next
 	Set ExcelApp = CreateObject("Excel.Application")
-	If Err()<>0 Then MsgBox "Excel не установлен": End
+	If Err()<>0 Then MsgBox "Excel Г­ГҐ ГіГ±ГІГ Г­Г®ГўГ«ГҐГ­": End
 	On Error GoTo handler
 
 	REM +++
-	' Выбираем файл для открытия
-	ret = ws.Openfiledialog(False, "Выбор файла", "Excel_2013|*.xlsx|Excel_2010|*.xls", "D:\", )
+	' Г‚Г»ГЎГЁГ°Г ГҐГ¬ ГґГ Г©Г« Г¤Г«Гї Г®ГІГЄГ°Г»ГІГЁГї
+	ret = ws.Openfiledialog(False, "Г‚Г»ГЎГ®Г° ГґГ Г©Г«Г ", "Excel_2013|*.xlsx|Excel_2010|*.xls", "D:\", )
 	If IsEmpty(ret) Then GoTo endh
 	path = ret(0)
 		
-	'Открытие файла
+	'ГЋГІГЄГ°Г»ГІГЁГҐ ГґГ Г©Г«Г 
 	On Error Resume Next
 	Call ExcelApp.Workbooks.Add(path)
-	If Err()<>0 Then Err=0 : Print "Ошибка при открытии " + path : GoTo endh
+	If Err()<>0 Then Err=0 : Print "ГЋГёГЁГЎГЄГ  ГЇГ°ГЁ Г®ГІГЄГ°Г»ГІГЁГЁ " + path : GoTo endh
 	On Error GoTo handler
 	
 	Set ExcelSheet = ExcelApp.Workbooks(1).Worksheets(1)
-	If Err()<>0 Then Err=0 : Print "Ошибка ExcelApp.Workbooks(1).Worksheets(1) при открытии " : GoTo endh
+	If Err()<>0 Then Err=0 : Print "ГЋГёГЁГЎГЄГ  ExcelApp.Workbooks(1).Worksheets(1) ГЇГ°ГЁ Г®ГІГЄГ°Г»ГІГЁГЁ " : GoTo endh
 	On Error GoTo handler
 	
 	
-	' Определяем БД
+	' ГЋГЇГ°ГҐГ¤ГҐГ«ГїГҐГ¬ ГЃГ„
 	Set s = New NotesSession
 	'Set db = s.CurrentDatabase
 	
@@ -59,76 +59,76 @@ handler:
 	ExcelApp.DisplayAlerts = False
 	ExcelApp.Quit
 	Dim strError As String
-	strError = " Ошибка в Процедуре { Initialize } из Агента { Дормост Закачка Реестра Excel }, строка " + CStr(Erl) + Chr(10) + Error$
+	strError = " ГЋГёГЁГЎГЄГ  Гў ГЏГ°Г®Г¶ГҐГ¤ГіГ°ГҐ { Initialize } ГЁГ§ ГЂГЈГҐГ­ГІГ  { Г„Г®Г°Г¬Г®Г±ГІ Г‡Г ГЄГ Г·ГЄГ  ГђГҐГҐГ±ГІГ°Г  Excel }, Г±ГІГ°Г®ГЄГ  " + CStr(Erl) + Chr(10) + Error$
 	Error Err, strError
 endh:
 End Sub
 %REM
 	Function fillegrul 21/12/17
-	Description: ЕГРЮЛ
+	Description: Г…ГѓГђГћГ‹
 %END REM
 Function FillEgrul(i%, unidorg$, opf$, pn$, kn$)
-	On Error GoTo handler 'обработчик ошибок
+	On Error GoTo handler 'Г®ГЎГ°Г ГЎГ®ГІГ·ГЁГЄ Г®ГёГЁГЎГ®ГЄ
 	REM +++++++++++++++++++++++++++++		
 	Dim j%, tmp$, unid$, opffull$, uradr As Variant
 	Dim doc As NotesDocument
 	j=0
 
-	' Определяем БД
+	' ГЋГЇГ°ГҐГ¤ГҐГ«ГїГҐГ¬ ГЃГ„
 	Set db = s.Currentdatabase
-	' Создаем документ в БД
+	' Г‘Г®Г§Г¤Г ГҐГ¬ Г¤Г®ГЄГіГ¬ГҐГ­ГІ Гў ГЃГ„
 	Set doc = db.Createdocument()	
 	
 	Call header(doc, pn, unidorg, kn)
-	' Определяем имя формы
+	' ГЋГЇГ°ГҐГ¤ГҐГ«ГїГҐГ¬ ГЁГ¬Гї ГґГ®Г°Г¬Г»
 	Call doc.Replaceitemvalue("Form", "22226VypiskaIzEGRJuL")
 	
 	
-	'Наим дока
-	Call doc.Replaceitemvalue("ObrazovanieNaimenDoc", "Лист записи")
-	'Кому выдан
+	'ГЌГ ГЁГ¬ Г¤Г®ГЄГ 
+	Call doc.Replaceitemvalue("ObrazovanieNaimenDoc", "Г‹ГЁГ±ГІ Г§Г ГЇГЁГ±ГЁ")
+	'ГЉГ®Г¬Гі ГўГ»Г¤Г Г­
 	Call doc.Replaceitemvalue("KomuVydan", kn)	
-	'Дата выдачи
+	'Г„Г ГІГ  ГўГ»Г¤Г Г·ГЁ
 	Call doc.Replaceitemvalue("Date", Today())	
-	'ОПФ полное
+	'ГЋГЏГ” ГЇГ®Г«Г­Г®ГҐ
 
-	' ОПФ
-	If opf = "ОАО" Then
-		opffull = "Откртытое акционерное общество" 
-	ElseIf opf = "ЗАО" Then
-		opffull = "Закртытое акционерное общество"
-	ElseIf opf = "АО" Then
-		opffull = "Акционерное общество"	
-	ElseIf opf = "ООО" Then
-		opffull = "Общество с ограниченной ответственностью"	
-	ElseIf opf = "ГУП" Then
-		opffull = "Государственное унитарное предприятие"		
+	' ГЋГЏГ”
+	If opf = "ГЋГЂГЋ" Then
+		opffull = "ГЋГІГЄГ°ГІГ»ГІГ®ГҐ Г ГЄГ¶ГЁГ®Г­ГҐГ°Г­Г®ГҐ Г®ГЎГ№ГҐГ±ГІГўГ®" 
+	ElseIf opf = "Г‡ГЂГЋ" Then
+		opffull = "Г‡Г ГЄГ°ГІГ»ГІГ®ГҐ Г ГЄГ¶ГЁГ®Г­ГҐГ°Г­Г®ГҐ Г®ГЎГ№ГҐГ±ГІГўГ®"
+	ElseIf opf = "ГЂГЋ" Then
+		opffull = "ГЂГЄГ¶ГЁГ®Г­ГҐГ°Г­Г®ГҐ Г®ГЎГ№ГҐГ±ГІГўГ®"	
+	ElseIf opf = "ГЋГЋГЋ" Then
+		opffull = "ГЋГЎГ№ГҐГ±ГІГўГ® Г± Г®ГЈГ°Г Г­ГЁГ·ГҐГ­Г­Г®Г© Г®ГІГўГҐГІГ±ГІГўГҐГ­Г­Г®Г±ГІГјГѕ"	
+	ElseIf opf = "ГѓГ“ГЏ" Then
+		opffull = "ГѓГ®Г±ГіГ¤Г Г°Г±ГІГўГҐГ­Г­Г®ГҐ ГіГ­ГЁГІГ Г°Г­Г®ГҐ ГЇГ°ГҐГ¤ГЇГ°ГЁГїГІГЁГҐ"		
 	End If
 	Call doc.Replaceitemvalue("OPF", opffull)
-	'ОПФ краткое
+	'ГЋГЏГ” ГЄГ°Г ГІГЄГ®ГҐ
 	Call doc.Replaceitemvalue("OPFmin", opf)	
-	'Полное наим
+	'ГЏГ®Г«Г­Г®ГҐ Г­Г ГЁГ¬
 	Call doc.Replaceitemvalue("FullName", pn)
-	'Крат наим
+	'ГЉГ°Г ГІ Г­Г ГЁГ¬
 	Call doc.Replaceitemvalue("CropName", kn)
-	'Наим органа - ген дир
-	Call doc.Replaceitemvalue("Organ", "Генеральный директор")
-	'-----Юр адрес-----
+	'ГЌГ ГЁГ¬ Г®Г°ГЈГ Г­Г  - ГЈГҐГ­ Г¤ГЁГ°
+	Call doc.Replaceitemvalue("Organ", "ГѓГҐГ­ГҐГ°Г Г«ГјГ­Г»Г© Г¤ГЁГ°ГҐГЄГІГ®Г°")
+	'-----ГћГ° Г Г¤Г°ГҐГ±-----
 	tmp = ExcelSheet.Cells(i,37).Value
 	uradr = Split(tmp, ",")
-	'Индекс	
+	'Г€Г­Г¤ГҐГЄГ±	
 	Call doc.Replaceitemvalue("Indeks", uradr(j))
-	'Страна
+	'Г‘ГІГ°Г Г­Г 
 	j=j+1
 	Call doc.Replaceitemvalue("Strana", Trim(uradr(j)))
-	'Субъект
+	'Г‘ГіГЎГєГҐГЄГІ
 	j=j+1
 	Call doc.Replaceitemvalue("SubjectRF", Trim(uradr(j)))
-	'Город
+	'ГѓГ®Г°Г®Г¤
 	j=j+1
-	If Left(Trim(uradr(j)),1)="г" Or Left(Trim(uradr(j)),3)="пос" Then
+	If Left(Trim(uradr(j)),1)="ГЈ" Or Left(Trim(uradr(j)),3)="ГЇГ®Г±" Then
 		Call doc.Replaceitemvalue("City", Trim(uradr(j)))
-		'Улица
+		'Г“Г«ГЁГ¶Г 
 		j=j+1
 		If j>UBound(uradr) Then
 			Call doc.Replaceitemvalue("Street", "")
@@ -136,21 +136,21 @@ Function FillEgrul(i%, unidorg$, opf$, pn$, kn$)
 			Call doc.Replaceitemvalue("Street", Trim(uradr(j)))
 		End If		
 		
-		'Дом
+		'Г„Г®Г¬
 		j=j+1
 		If j>UBound(uradr) Then
 			Call doc.Replaceitemvalue("Dom", "")
 		Else
 			Call doc.Replaceitemvalue("Dom", Trim(uradr(j)))
 		End If		
-		'Корпус
+		'ГЉГ®Г°ГЇГіГ±
 		j=j+1
 		If j>UBound(uradr) Then
 			Call doc.Replaceitemvalue("Korpus", "")
 		Else
 			Call doc.Replaceitemvalue("Korpus", Trim(uradr(j)))
 		End If			
-		'Квартира
+		'ГЉГўГ Г°ГІГЁГ°Г 
 		j=j+1
 		If j>UBound(uradr) Then
 			Call doc.Replaceitemvalue("Kvartira", "")
@@ -160,28 +160,28 @@ Function FillEgrul(i%, unidorg$, opf$, pn$, kn$)
 	Else
 		j = 2
 		Call doc.Replaceitemvalue("City", Trim(uradr(j)))
-		'Улица
+		'Г“Г«ГЁГ¶Г 
 		j=j+1
 		If j>UBound(uradr) Then
 			Call doc.Replaceitemvalue("Street", "")
 		Else
 			Call doc.Replaceitemvalue("Street", Trim(uradr(j)))
 		End If				
-		'Дом
+		'Г„Г®Г¬
 		j=j+1
 		If j>UBound(uradr) Then
 			Call doc.Replaceitemvalue("Dom", "")
 		Else
 			Call doc.Replaceitemvalue("Dom", Trim(uradr(j)))
 		End If		
-		'Корпус	
+		'ГЉГ®Г°ГЇГіГ±	
 		j=j+1
 		If j>UBound(uradr) Then
 			Call doc.Replaceitemvalue("Korpus", "")
 		Else
 			Call doc.Replaceitemvalue("Korpus", Trim(uradr(j)))
 		End If			
-		'Квартира
+		'ГЉГўГ Г°ГІГЁГ°Г 
 		j=j+1
 		If j>UBound(uradr) Then
 			Call doc.Replaceitemvalue("Kvartira", "")
@@ -189,14 +189,14 @@ Function FillEgrul(i%, unidorg$, opf$, pn$, kn$)
 			Call doc.Replaceitemvalue("Kvartira", Trim(uradr(j)))
 		End If		
 	End If
-	'Тлф
+	'Г’Г«Гґ
 	tmp = ExcelSheet.Cells(i,15).Value
 	Call doc.Replaceitemvalue("Tel", tmp)
-	'Факс
+	'Г”Г ГЄГ±
 	tmp = ExcelSheet.Cells(i,16).Value
 	Call doc.Replaceitemvalue("Fax", tmp)
 	
-	'Дата действия
+	'Г„Г ГІГ  Г¤ГҐГ©Г±ГІГўГЁГї
 	Call doc.Replaceitemvalue("DeistvieData", DateNumber(2018,4,1))
 	
 	Call doc.Save(True, True, True)	
@@ -207,7 +207,7 @@ handler:
 	ExcelApp.DisplayAlerts = False
 	ExcelApp.Quit
 	Dim strError As String
-	strError = " Ошибка в { функции FillEgrul}, строка " + CStr(Erl) + Chr(10) + Error$
+	strError = " ГЋГёГЁГЎГЄГ  Гў { ГґГіГ­ГЄГ¶ГЁГЁ FillEgrul}, Г±ГІГ°Г®ГЄГ  " + CStr(Erl) + Chr(10) + Error$
 	'Error Err, strError
 	MsgBox strError
 	End
@@ -215,59 +215,59 @@ endh:
 End Function
 %REM
 	Function fillinn 21/12/17
-	Description: Протокол назначения руководителя
+	Description: ГЏГ°Г®ГІГ®ГЄГ®Г« Г­Г Г§Г­Г Г·ГҐГ­ГЁГї Г°ГіГЄГ®ГўГ®Г¤ГЁГІГҐГ«Гї
 %END REM
 Function FillRuk(i As Integer, unidorg$, opf$, pn$, kn$)
-	On Error GoTo handler 'обработчик ошибок
+	On Error GoTo handler 'Г®ГЎГ°Г ГЎГ®ГІГ·ГЁГЄ Г®ГёГЁГЎГ®ГЄ
 	REM +++++++++++++++++++++++++++++	
 	Dim unid$, tmp$, opffull$, y%, m%, d%, data$
 	Dim tmp2 As Variant
 	Dim doc As NotesDocument
 
-	' Определяем БД
+	' ГЋГЇГ°ГҐГ¤ГҐГ«ГїГҐГ¬ ГЃГ„
 	Set db = s.Currentdatabase
-	' Создаем документ в БД
+	' Г‘Г®Г§Г¤Г ГҐГ¬ Г¤Г®ГЄГіГ¬ГҐГ­ГІ Гў ГЃГ„
 	Set doc = db.Createdocument()	
 	
 	Call header(doc, pn, unidorg, kn)
-	' Определяем имя формы
+	' ГЋГЇГ°ГҐГ¤ГҐГ«ГїГҐГ¬ ГЁГ¬Гї ГґГ®Г°Г¬Г»
 	Call doc.Replaceitemvalue("Form", "22217ProtokolNaznachRukov")
 	
-	'Наим дока
-	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "Протокол")
-	'Дата дока
+	'ГЌГ ГЁГ¬ Г¤Г®ГЄГ 
+	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "ГЏГ°Г®ГІГ®ГЄГ®Г«")
+	'Г„Г ГІГ  Г¤Г®ГЄГ 
 	Call doc.Replaceitemvalue("DataPodachiDokumenta", Today())
-	' Кем выдано, Краткое наим
+	' ГЉГҐГ¬ ГўГ»Г¤Г Г­Г®, ГЉГ°Г ГІГЄГ®ГҐ Г­Г ГЁГ¬
 	Call doc.Replaceitemvalue("KemVidano", kn)
-	' ФИО
+	' Г”Г€ГЋ
 	tmp = ExcelSheet.Cells(i,11).Value
 	tmp2 = Split(tmp, " ")
-	'Фам рук
+	'Г”Г Г¬ Г°ГіГЄ
 	Call doc.Replaceitemvalue("Fam", tmp2(0))
-	'Имя рук
+	'Г€Г¬Гї Г°ГіГЄ
 	Call doc.Replaceitemvalue("Name", tmp2(1))
-	'Отч рук
+	'ГЋГІГ· Г°ГіГЄ
 	Call doc.Replaceitemvalue("Otchstvo", tmp2(2))
-	'Должность рук
+	'Г„Г®Г«Г¦Г­Г®Г±ГІГј Г°ГіГЄ
 	tmp = ExcelSheet.Cells(i,12).Value
 	Call doc.Replaceitemvalue("Dolzhnost", tmp)	
-	'Дата полномочий
+	'Г„Г ГІГ  ГЇГ®Г«Г­Г®Г¬Г®Г·ГЁГ©
 	Call doc.Replaceitemvalue("DatePolnOt", Today())	
-	'Дата окончаний полном
+	'Г„Г ГІГ  Г®ГЄГ®Г­Г·Г Г­ГЁГ© ГЇГ®Г«Г­Г®Г¬
 	y = Val(Year(Today()))+Val(3)
 	m = Month(Today())
 	d = Day(Today())
 	data = DateNumber(y, m, d)
 	Call doc.Replaceitemvalue("DatePolnDo",data)
-	'Общее кол во лет полномочий - 3 по умолчанию
+	'ГЋГЎГ№ГҐГҐ ГЄГ®Г« ГўГ® Г«ГҐГІ ГЇГ®Г«Г­Г®Г¬Г®Г·ГЁГ© - 3 ГЇГ® ГіГ¬Г®Г«Г·Г Г­ГЁГѕ
 	Call doc.Replaceitemvalue("DatePoln", "3")
-	'Дата действия дока и полномочий
+	'Г„Г ГІГ  Г¤ГҐГ©Г±ГІГўГЁГї Г¤Г®ГЄГ  ГЁ ГЇГ®Г«Г­Г®Г¬Г®Г·ГЁГ©
 	Call doc.Replaceitemvalue("DeistvieData", data)
 	Call doc.Save(True, True, True)		
 	REM +++++++++++++++++++++++++++++
 	GoTo endh
 handler:
-	strError = " Ошибка в { функции FillRuk}, строка " + CStr(Erl) + Chr(10) + Error$
+	strError = " ГЋГёГЁГЎГЄГ  Гў { ГґГіГ­ГЄГ¶ГЁГЁ FillRuk}, Г±ГІГ°Г®ГЄГ  " + CStr(Erl) + Chr(10) + Error$
 	'Error Err, strError
 	MsgBox strError
 	End
@@ -276,34 +276,34 @@ End Function
 
 %REM
 	Function fillinn 21/12/17
-	Description: ИНН
+	Description: Г€ГЌГЌ
 %END REM
 Function fillinn(i%, unidorg$, opf$, pn$, kn$)
-	On Error GoTo handler 'обработчик ошибок
+	On Error GoTo handler 'Г®ГЎГ°Г ГЎГ®ГІГ·ГЁГЄ Г®ГёГЁГЎГ®ГЄ
 	REM +++++++++++++++++++++++++++++		
 	Dim tmp$, unid$
 	Dim doc As NotesDocument	
 	
-	' Определяем БД
+	' ГЋГЇГ°ГҐГ¤ГҐГ«ГїГҐГ¬ ГЃГ„
 	Set db = s.Currentdatabase
-	' Создаем документ в БД
+	' Г‘Г®Г§Г¤Г ГҐГ¬ Г¤Г®ГЄГіГ¬ГҐГ­ГІ Гў ГЃГ„
 	Set doc = db.Createdocument()	
 	
 	Call header(doc, pn, unidorg, kn)
-	' Определяем имя формы
+	' ГЋГЇГ°ГҐГ¤ГҐГ«ГїГҐГ¬ ГЁГ¬Гї ГґГ®Г°Г¬Г»
 	Call doc.Replaceitemvalue("Form", "22212SvidOPrisvoenii")
 	
-	'Наим дока
-	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "Свидетельство о постановке на налоговый учет юридического лица")
-	'ИНН
+	'ГЌГ ГЁГ¬ Г¤Г®ГЄГ 
+	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "Г‘ГўГЁГ¤ГҐГІГҐГ«ГјГ±ГІГўГ® Г® ГЇГ®Г±ГІГ Г­Г®ГўГЄГҐ Г­Г  Г­Г Г«Г®ГЈГ®ГўГ»Г© ГіГ·ГҐГІ ГѕГ°ГЁГ¤ГЁГ·ГҐГ±ГЄГ®ГЈГ® Г«ГЁГ¶Г ")
+	'Г€ГЌГЌ
 	tmp = Val(ExcelSheet.Cells(i,2).Value)
 	Call doc.Replaceitemvalue("INN", tmp)
-	'КПП
+	'ГЉГЏГЏ
 	tmp = Val(ExcelSheet.Cells(i,21).Value)
 	Call doc.Replaceitemvalue("KPP", tmp)
-	'Кем выдано
+	'ГЉГҐГ¬ ГўГ»Г¤Г Г­Г®
 	Call doc.Replaceitemvalue("KemVidano", kn)	
-	'Дата постановки на учет
+	'Г„Г ГІГ  ГЇГ®Г±ГІГ Г­Г®ГўГЄГЁ Г­Г  ГіГ·ГҐГІ
 	tmp = ExcelSheet.Cells(i,33).Value
 	If tmp="" Then
 		tmp = DateValue(ExcelSheet.Cells(i,32).Value)
@@ -319,7 +319,7 @@ handler:
 	ExcelApp.DisplayAlerts = False
 	ExcelApp.Quit
 	Dim strError As String
-	strError = " Ошибка в { функции FillINN}, строка " + CStr(Erl) + Chr(10) + Error$
+	strError = " ГЋГёГЁГЎГЄГ  Гў { ГґГіГ­ГЄГ¶ГЁГЁ FillINN}, Г±ГІГ°Г®ГЄГ  " + CStr(Erl) + Chr(10) + Error$
 	'Error Err, strError
 	MsgBox strError
 	End
@@ -327,31 +327,31 @@ endh:
 End Function
 %REM
 	Function fillogrn 21/12/17
-	Description: ОГРН
+	Description: ГЋГѓГђГЌ
 %END REM
 Function fillogrn(i%, unidorg$, opf$, pn$, kn$)
-	On Error GoTo handler 'обработчик ошибок
+	On Error GoTo handler 'Г®ГЎГ°Г ГЎГ®ГІГ·ГЁГЄ Г®ГёГЁГЎГ®ГЄ
 	REM +++++++++++++++++++++++++++++		
 	Dim tmp$, unid$
 	Dim doc As NotesDocument	
 	
-	' Определяем БД
+	' ГЋГЇГ°ГҐГ¤ГҐГ«ГїГҐГ¬ ГЃГ„
 	Set db = s.Currentdatabase
-	' Создаем документ в БД
+	' Г‘Г®Г§Г¤Г ГҐГ¬ Г¤Г®ГЄГіГ¬ГҐГ­ГІ Гў ГЃГ„
 	Set doc = db.Createdocument()	
 	
 	Call header(doc, pn, unidorg, kn)
-	' Определяем имя формы
+	' ГЋГЇГ°ГҐГ¤ГҐГ«ГїГҐГ¬ ГЁГ¬Гї ГґГ®Г°Г¬Г»
 	Call doc.Replaceitemvalue("Form", "22211SvidPrisvoenOGRN")
 		
-	'Наим дока
-	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "Свидетельство о государственной регистрации юридического лица")
-	'ОГРН
+	'ГЌГ ГЁГ¬ Г¤Г®ГЄГ 
+	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "Г‘ГўГЁГ¤ГҐГІГҐГ«ГјГ±ГІГўГ® Г® ГЈГ®Г±ГіГ¤Г Г°Г±ГІГўГҐГ­Г­Г®Г© Г°ГҐГЈГЁГ±ГІГ°Г Г¶ГЁГЁ ГѕГ°ГЁГ¤ГЁГ·ГҐГ±ГЄГ®ГЈГ® Г«ГЁГ¶Г ")
+	'ГЋГѓГђГЌ
 	tmp = Val(ExcelSheet.Cells(i,20).Value)
 	Call doc.Replaceitemvalue("OGRN", tmp)
-	'Кем выдано
+	'ГЉГҐГ¬ ГўГ»Г¤Г Г­Г®
 	Call doc.Replaceitemvalue("KemVidano", kn)	
-	'Дата внесения ОГРН
+	'Г„Г ГІГ  ГўГ­ГҐГ±ГҐГ­ГЁГї ГЋГѓГђГЌ
 	tmp = ExcelSheet.Cells(i,33).Value
 	If tmp="" Then
 		tmp = DateValue(ExcelSheet.Cells(i,32).Value)
@@ -359,7 +359,7 @@ Function fillogrn(i%, unidorg$, opf$, pn$, kn$)
 		tmp = DateValue(tmp)
 	End If	
 	Call doc.Replaceitemvalue("DateVnesenieOGRN", tmp)
-	'Дата рег предприятия
+	'Г„Г ГІГ  Г°ГҐГЈ ГЇГ°ГҐГ¤ГЇГ°ГЁГїГІГЁГї
 	tmp = ExcelSheet.Cells(i,32).Value
 	Call doc.Replaceitemvalue("DateRegPredpr", tmp)
 	
@@ -370,7 +370,7 @@ handler:
 	ExcelApp.DisplayAlerts = False
 	ExcelApp.Quit
 	Dim strError As String
-	strError = " Ошибка в { функции FillOGRN}, строка " + CStr(Erl) + Chr(10) + Error$
+	strError = " ГЋГёГЁГЎГЄГ  Гў { ГґГіГ­ГЄГ¶ГЁГЁ FillOGRN}, Г±ГІГ°Г®ГЄГ  " + CStr(Erl) + Chr(10) + Error$
 	'Error Err, strError
 	MsgBox strError
 	End
@@ -378,65 +378,65 @@ endh:
 End Function
 %REM
 	Function fillank 20/12/17
-	Description: Анкета
+	Description: ГЂГ­ГЄГҐГІГ 
 %END REM
 Function FillAnk(i As Integer, unidorg$, opf$, pn$, kn$, datecrt$ )
-	On Error GoTo handler 'обработчик ошибок
+	On Error GoTo handler 'Г®ГЎГ°Г ГЎГ®ГІГ·ГЁГЄ Г®ГёГЁГЎГ®ГЄ
 	REM +++++++++++++++++++++++++++++	
 	Dim unid$, tmp$, tmp2$, opffull$
 	Dim doc As NotesDocument
 	On Error Resume Next
 	
-	' Определяем БД
+	' ГЋГЇГ°ГҐГ¤ГҐГ«ГїГҐГ¬ ГЃГ„
 	Set db = s.Currentdatabase
-	' Создаем документ в БД
+	' Г‘Г®Г§Г¤Г ГҐГ¬ Г¤Г®ГЄГіГ¬ГҐГ­ГІ Гў ГЃГ„
 	Set doc = db.Createdocument()	
 
 	Call header(doc, pn, unidorg, kn)
-	' Определяем имя формы
+	' ГЋГЇГ°ГҐГ¤ГҐГ«ГїГҐГ¬ ГЁГ¬Гї ГґГ®Г°Г¬Г»
 	Call doc.Replaceitemvalue("Form", "2214Anketa")
 	
-	'Наим документа
-	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "Сведения об организации")	
-	'Дата документа
+	'ГЌГ ГЁГ¬ Г¤Г®ГЄГіГ¬ГҐГ­ГІГ 
+	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "Г‘ГўГҐГ¤ГҐГ­ГЁГї Г®ГЎ Г®Г°ГЈГ Г­ГЁГ§Г Г¶ГЁГЁ")	
+	'Г„Г ГІГ  Г¤Г®ГЄГіГ¬ГҐГ­ГІГ 
 	Call doc.Replaceitemvalue("DataPodachiDokumenta", Today())	
-	' Кем выдано
+	' ГЉГҐГ¬ ГўГ»Г¤Г Г­Г®
 	Call doc.Replaceitemvalue("KemVidano", kn)
-	'Полное
+	'ГЏГ®Г«Г­Г®ГҐ
 	Call doc.Replaceitemvalue("PolnoeNaimenovanieOrg", pn)	
-	'Краткое
-	Call doc.Replaceitemvalue("OrgChlenSROТName1", kn)	
-	'Предыдущ наим
+	'ГЉГ°Г ГІГЄГ®ГҐ
+	Call doc.Replaceitemvalue("OrgChlenSROГ’Name1", kn)	
+	'ГЏГ°ГҐГ¤Г»Г¤ГіГ№ Г­Г ГЁГ¬
 	Call doc.Replaceitemvalue("PolnoeNaimenovanieOrgOld", "")
-	'Год создания
+	'ГѓГ®Г¤ Г±Г®Г§Г¤Г Г­ГЁГї
 	Call doc.Replaceitemvalue("YearCompany", Year(DateValue(datecrt)))
-	'Юр адрес
+	'ГћГ° Г Г¤Г°ГҐГ±
 	tmp = ExcelSheet.Cells(i,37).Value
 	Call doc.Replaceitemvalue("JurAdres", tmp)	
-	'Факт адрес
+	'Г”Г ГЄГІ Г Г¤Г°ГҐГ±
 	tmp = ExcelSheet.Cells(i,39).Value
 	Call doc.Replaceitemvalue("FactAdres", tmp)	
-	'ТЛФ
+	'Г’Г‹Г”
 	tmp = ExcelSheet.Cells(i,15).Value
 	Call doc.Replaceitemvalue("Phone", tmp)	
-	'Факс
+	'Г”Г ГЄГ±
 	tmp = ExcelSheet.Cells(i,16).Value
 	Call doc.Replaceitemvalue("Fax", tmp)	
-	'Мэйл
+	'ГЊГЅГ©Г«
 	tmp = ExcelSheet.Cells(i,17).Value
 	Call doc.Replaceitemvalue("Email", tmp)	
-	'Сайт
+	'Г‘Г Г©ГІ
 	tmp = ExcelSheet.Cells(i,18).Value
 	Call doc.Replaceitemvalue("www", tmp)	
-	'Конт лицо
+	'ГЉГ®Г­ГІ Г«ГЁГ¶Г®
 	Call doc.Replaceitemvalue("FIOKontaktnogoLica", "")	
-	'Кол во сотрудников
+	'ГЉГ®Г« ГўГ® Г±Г®ГІГ°ГіГ¤Г­ГЁГЄГ®Гў
 	tmp = ExcelSheet.Cells(i,65).Value
 	Call doc.Replaceitemvalue("Vsego", tmp)	
-	'РНП
-	Call doc.Replaceitemvalue("RNP", "нет")	
-	'Банкротство
-	Call doc.Replaceitemvalue("Bankrot", "нет")	
+	'ГђГЌГЏ
+	Call doc.Replaceitemvalue("RNP", "Г­ГҐГІ")	
+	'ГЃГ Г­ГЄГ°Г®ГІГ±ГІГўГ®
+	Call doc.Replaceitemvalue("Bankrot", "Г­ГҐГІ")	
 	
 	Call doc.Replaceitemvalue("DeistvieData", DateNumber(2018,4,1))	
 	
@@ -446,7 +446,7 @@ Function FillAnk(i As Integer, unidorg$, opf$, pn$, kn$, datecrt$ )
 	GoTo endh
 handler:
 	Dim strError As String
-	strError = " Ошибка в { функции FillAnk}, строка " + CStr(Erl) + Chr(10) + Error$
+	strError = " ГЋГёГЁГЎГЄГ  Гў { ГґГіГ­ГЄГ¶ГЁГЁ FillAnk}, Г±ГІГ°Г®ГЄГ  " + CStr(Erl) + Chr(10) + Error$
 	'Error Err, strError
 	MsgBox strError
 	End
@@ -454,64 +454,64 @@ endh:
 End Function	
 %REM
 	Function fillinn 20/12/17
-	Description: Головная форма Процесс-OrgChlenSRO
+	Description: ГѓГ®Г«Г®ГўГ­Г Гї ГґГ®Г°Г¬Г  ГЏГ°Г®Г¶ГҐГ±Г±-OrgChlenSRO
 %END REM
 Function FillProcess(i As Integer)
-	On Error GoTo handler 'обработчик ошибок
+	On Error GoTo handler 'Г®ГЎГ°Г ГЎГ®ГІГ·ГЁГЄ Г®ГёГЁГЎГ®ГЄ
 	REM +++++++++++++++++++++++++++++	
 	Dim unidorg$, tmp$, tmp2$, opf$, pn$, kn$, datecrt$
 	Dim doc As NotesDocument
 	On Error Resume Next
 
-	' Определяем БД
+	' ГЋГЇГ°ГҐГ¤ГҐГ«ГїГҐГ¬ ГЃГ„
 	Set db = s.Currentdatabase
-	' Создаем документ в БД
+	' Г‘Г®Г§Г¤Г ГҐГ¬ Г¤Г®ГЄГіГ¬ГҐГ­ГІ Гў ГЃГ„
 	Set doc = db.Createdocument()
 	
 	
 	
-	' Заполняем UNID
+	' Г‡Г ГЇГ®Г«Г­ГїГҐГ¬ UNID
 	unidorg =  doc.Universalid 
 	Call doc.Replaceitemvalue("UNID", unidorg)
-	' Определяем имя формы
+	' ГЋГЇГ°ГҐГ¤ГҐГ«ГїГҐГ¬ ГЁГ¬Гї ГґГ®Г°Г¬Г»
 	Call doc.Replaceitemvalue("Form", "OrgChlenSRO")
-	' Ставим действующую организацию
+	' Г‘ГІГ ГўГЁГ¬ Г¤ГҐГ©Г±ГІГўГіГѕГ№ГіГѕ Г®Г°ГЈГ Г­ГЁГ§Г Г¶ГЁГѕ
 	Call doc.Replaceitemvalue("OrgStatus", "2" )
 	Call doc.Replaceitemvalue("FromCandidatToChlen", "1" )
 
 	
-	' Полное наим орг
-	' ОПФ
+	' ГЏГ®Г«Г­Г®ГҐ Г­Г ГЁГ¬ Г®Г°ГЈ
+	' ГЋГЏГ”
 	opf = ExcelSheet.Cells(i,6).Value
 	opf = FullTrim(opf)
-	' Часть полн. наименования
+	' Г—Г Г±ГІГј ГЇГ®Г«Г­. Г­Г ГЁГ¬ГҐГ­Г®ГўГ Г­ГЁГї
 	pn = ExcelSheet.Cells(i,9).Value
 	pn = FullTrim(pn)
 	
 	pn = opf + " " + pn
-	Call doc.Replaceitemvalue("OrgChlenSROТName", pn)	
+	Call doc.Replaceitemvalue("OrgChlenSROГ’Name", pn)	
 	Call doc.Replaceitemvalue("PolnoeNaimenovanieOrg", pn)
 	
-	' Краткое наименование
+	' ГЉГ°Г ГІГЄГ®ГҐ Г­Г ГЁГ¬ГҐГ­Г®ГўГ Г­ГЁГҐ
 	kn = ExcelSheet.Cells(i,10).Value
 	kn = FullTrim(kn)
 	
 	kn = opf + " " + kn
-	Call doc.Replaceitemvalue("OrgChlenSROТName_1", kn)	
+	Call doc.Replaceitemvalue("OrgChlenSROГ’Name_1", kn)	
 	
-	'Дата вступления
+	'Г„Г ГІГ  ГўГ±ГІГіГЇГ«ГҐГ­ГЁГї
 	datecrt = DateValue(ExcelSheet.Cells(i,22).Value)
 	Call doc.Replaceitemvalue("DatePrinVNP", datecrt)	
 	
-	'Номер решения
+	'ГЌГ®Г¬ГҐГ° Г°ГҐГёГҐГ­ГЁГї
 	tmp = Val(ExcelSheet.Cells(i,23).Value)
 	Call doc.Replaceitemvalue("NumResh", tmp)
 	
-	'Дата рег в реестре СРО
+	'Г„Г ГІГ  Г°ГҐГЈ Гў Г°ГҐГҐГ±ГІГ°ГҐ Г‘ГђГЋ
 	tmp = DateValue(ExcelSheet.Cells(i,24).Value)
 	Call doc.Replaceitemvalue("DateRegistr", tmp)
 	
-	' Номер рег записи - номер реестра
+	' ГЌГ®Г¬ГҐГ° Г°ГҐГЈ Г§Г ГЇГЁГ±ГЁ - Г­Г®Г¬ГҐГ° Г°ГҐГҐГ±ГІГ°Г 
 	tmp = ExcelSheet.Cells(i,1).Value
 	tmp = FullTrim(tmp)
 	If Len(tmp)=1 Then
@@ -523,7 +523,7 @@ Function FillProcess(i As Integer)
 
 	Call doc.Save(True, True, True)
 	
-	REM Запускаем функцию заполн документов
+	REM Г‡Г ГЇГіГ±ГЄГ ГҐГ¬ ГґГіГ­ГЄГ¶ГЁГѕ Г§Г ГЇГ®Г«Г­ Г¤Г®ГЄГіГ¬ГҐГ­ГІГ®Гў
 	Call FillAnk(i, unidorg, opf, pn, kn, datecrt)
 	Call FillRuk(i, unidorg, opf, pn, kn)
 	Call FillEgrul(i, unidorg, opf, pn, kn)
@@ -537,7 +537,7 @@ handler:
 	ExcelApp.DisplayAlerts = False
 	ExcelApp.Quit
 	Dim strError As String
-	strError = " Ошибка в { функции FillProcess}, строка " + CStr(Erl) + Chr(10) + Error$
+	strError = " ГЋГёГЁГЎГЄГ  Гў { ГґГіГ­ГЄГ¶ГЁГЁ FillProcess}, Г±ГІГ°Г®ГЄГ  " + CStr(Erl) + Chr(10) + Error$
 	'Error Err, strError
 	MsgBox strError
 	End
@@ -546,10 +546,10 @@ End Function
 
 %REM
 	Function header 22/12/2017
-	Description: Заполнение шапки каждого документа
+	Description: Г‡Г ГЇГ®Г«Г­ГҐГ­ГЁГҐ ГёГ ГЇГЄГЁ ГЄГ Г¦Г¤Г®ГЈГ® Г¤Г®ГЄГіГ¬ГҐГ­ГІГ 
 %END REM
 Function header(doc As NotesDocument, pn$, unidorg$, kn$)
-	On Error GoTo handler 'обработчик ошибок
+	On Error GoTo handler 'Г®ГЎГ°Г ГЎГ®ГІГ·ГЁГЄ Г®ГёГЁГЎГ®ГЄ
 	REM ----
 	Dim unid$
 	
@@ -557,16 +557,16 @@ Function header(doc As NotesDocument, pn$, unidorg$, kn$)
 	unid =  doc.Universalid 
 	Call doc.Replaceitemvalue("UNID", unid)
 	' OrgChlenSROTName
-	Call doc.Replaceitemvalue("OrgChlenSROТName", pn)	
+	Call doc.Replaceitemvalue("OrgChlenSROГ’Name", pn)	
 	' OrgChlenSROUNID
 	Call doc.Replaceitemvalue("OrgChlenSROUNID", unidorg)
 	' OrgChlenSROTName
-	Call doc.Replaceitemvalue("OrgChlenSROТNameShow", kn)	
+	Call doc.Replaceitemvalue("OrgChlenSROГ’NameShow", kn)	
 	
 	REM ----
 	GoTo endh
 handler:
-	strError = " Ошибка в { функции header}, строка " + CStr(Erl) + Chr(10) + Error$
+	strError = " ГЋГёГЁГЎГЄГ  Гў { ГґГіГ­ГЄГ¶ГЁГЁ header}, Г±ГІГ°Г®ГЄГ  " + CStr(Erl) + Chr(10) + Error$
 	'Error Err, strError
 	MsgBox strError
 	End
@@ -575,41 +575,41 @@ endh:
 End Function
 %REM
 	Function filllicense 22/12/17
-	Description: Лицензии
+	Description: Г‹ГЁГ¶ГҐГ­Г§ГЁГЁ
 %END REM
 Function filllicense(i%, unidorg$, opf$, pn$, kn$)
-	On Error GoTo handler 'обработчик ошибок
+	On Error GoTo handler 'Г®ГЎГ°Г ГЎГ®ГІГ·ГЁГЄ Г®ГёГЁГЎГ®ГЄ
 	REM +++++++++++++++++++++++++++++		
 	Dim tmp$, tmp2$, unid$, j%, n%
 	Dim doc As NotesDocument
 	Dim arr, tmparr As Variant	
 	
-	' Определяем БД
+	' ГЋГЇГ°ГҐГ¤ГҐГ«ГїГҐГ¬ ГЃГ„
 	Set db = s.Currentdatabase
 	
-	'Запускаем цикл по эл-там массива из лицензий
+	'Г‡Г ГЇГіГ±ГЄГ ГҐГ¬ Г¶ГЁГЄГ« ГЇГ® ГЅГ«-ГІГ Г¬ Г¬Г Г±Г±ГЁГўГ  ГЁГ§ Г«ГЁГ¶ГҐГ­Г§ГЁГ©
 	tmp = ExcelSheet.Cells(i,34).Value
-	arr = Split(tmp, "№")
+	arr = Split(tmp, "В№")
 	n = UBound(arr)
 	
 	For j=1 To UBound(arr)
-	' Создаем документ в БД
+	' Г‘Г®Г§Г¤Г ГҐГ¬ Г¤Г®ГЄГіГ¬ГҐГ­ГІ Гў ГЃГ„
 	Set doc = db.Createdocument()	
 	
 	Call header(doc, pn, unidorg, kn)
-	' Определяем имя формы
+	' ГЋГЇГ°ГҐГ¤ГҐГ«ГїГҐГ¬ ГЁГ¬Гї ГґГ®Г°Г¬Г»
 	Call doc.Replaceitemvalue("Form", "22232LicenziiNaVidyRabot")
 	
-	'Наим дока
-	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "Лицензия")
-	'Номер лицензии
-	tmparr = Split(arr(j), "от")
-	Call doc.Replaceitemvalue("Licenz_Nomer", "№ " + tmparr(0))
-	'Дата выдачи - сегодня
+	'ГЌГ ГЁГ¬ Г¤Г®ГЄГ 
+	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "Г‹ГЁГ¶ГҐГ­Г§ГЁГї")
+	'ГЌГ®Г¬ГҐГ° Г«ГЁГ¶ГҐГ­Г§ГЁГЁ
+	tmparr = Split(arr(j), "Г®ГІ")
+	Call doc.Replaceitemvalue("Licenz_Nomer", "В№ " + tmparr(0))
+	'Г„Г ГІГ  ГўГ»Г¤Г Г·ГЁ - Г±ГҐГЈГ®Г¤Г­Гї
 	tmp2 = tmparr(1)
 	Call doc.Replaceitemvalue("DataVydachi", tmp2)
-	'Статус лицензии - прекращено
-	Call doc.Replaceitemvalue("ViewLicense", "Прекращено")
+	'Г‘ГІГ ГІГіГ± Г«ГЁГ¶ГҐГ­Г§ГЁГЁ - ГЇГ°ГҐГЄГ°Г Г№ГҐГ­Г®
+	Call doc.Replaceitemvalue("ViewLicense", "ГЏГ°ГҐГЄГ°Г Г№ГҐГ­Г®")
 	
 	Call doc.Save(True, True, True)
 Next j
@@ -621,7 +621,7 @@ handler:
 	ExcelApp.DisplayAlerts = False
 	ExcelApp.Quit
 	Dim strError As String
-	strError = " Ошибка в { функции FillLicense}, строка " + CStr(Erl) + Chr(10) + Error$
+	strError = " ГЋГёГЁГЎГЄГ  Гў { ГґГіГ­ГЄГ¶ГЁГЁ FillLicense}, Г±ГІГ°Г®ГЄГ  " + CStr(Erl) + Chr(10) + Error$
 	'Error Err, strError
 	MsgBox strError
 	End
@@ -629,70 +629,85 @@ endh:
 End Function
 %REM
 	Function filllevelotv 22/12/17
-	Description: Уровни ответственности
+	Description: Г“Г°Г®ГўГ­ГЁ Г®ГІГўГҐГІГ±ГІГўГҐГ­Г­Г®Г±ГІГЁ
 %END REM
 Function filllevelotv(i%, unidorg$, opf$, pn$, kn$)
-	On Error GoTo handler 'обработчик ошибок
+	On Error GoTo handler 'Г®ГЎГ°Г ГЎГ®ГІГ·ГЁГЄ Г®ГёГЁГЎГ®ГЄ
 	REM +++++++++++++++++++++++++++++		
 	Dim tmp$, tmp2$
 	Dim doc As NotesDocument	
 	
-	' Определяем БД
+	' ГЋГЇГ°ГҐГ¤ГҐГ«ГїГҐГ¬ ГЃГ„
 	Set db = s.Currentdatabase
-	' Создаем документ в БД
+	' Г‘Г®Г§Г¤Г ГҐГ¬ Г¤Г®ГЄГіГ¬ГҐГ­ГІ Гў ГЃГ„
 	Set doc = db.Createdocument()	
 	
 	Call header(doc, pn, unidorg, kn)
-	' Определяем имя формы
+	' ГЋГЇГ°ГҐГ¤ГҐГ«ГїГҐГ¬ ГЁГ¬Гї ГґГ®Г°Г¬Г»
 	Call doc.Replaceitemvalue("Form", "2271ZayavUrovnOtvetstv")
 	
-	'Наим дока
-	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "Заявление об уровнях ответственности")
-	'Дата дока
+	'ГЌГ ГЁГ¬ Г¤Г®ГЄГ 
+
+	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "Г‡Г ГїГўГ«ГҐГ­ГЁГҐ Г®ГЎ ГіГ°Г®ГўГ­ГїГµ Г®ГІГўГҐГІГ±ГІГўГҐГ­Г­Г®Г±ГІГЁ")
+	'Г„Г ГІГ  Г¤Г®ГЄГ 
 	Call doc.Replaceitemvalue("DocDate", Today())
-	'Уровент отв ВВ
+	'Г“Г°Г®ГўГҐГ­ГІ Г®ГІГў Г‚Г‚
 	tmp = Trim(ExcelSheet.Cells(i,75).Value)
 	Call doc.Replaceitemvalue("KFVV_UrovnOtvetstvNum", tmp)
-	'Макс сумма по ВВ
+	'ГЊГ ГЄГ± Г±ГіГ¬Г¬Г  ГЇГ® Г‚Г‚
 	Select Case tmp
-		Case "Первый" 
-			Call doc.Replaceitemvalue("KFVV_StoimostDogovora", "не превышает 60 млн. руб.")
+		Case "ГЏГҐГ°ГўГ»Г©" 
+			Call doc.Replaceitemvalue("KFVV_StoimostDogovora", "Г­ГҐ ГЇГ°ГҐГўГ»ГёГ ГҐГІ 60 Г¬Г«Г­. Г°ГіГЎ.")
 			Call doc.Replaceitemvalue("KFVV_MinRazmerVznosa", 100000)
-		Case "Второй" 
-			Call doc.Replaceitemvalue("KFVV_StoimostDogovora", "не превышает 500 млн. руб.")
+		Case "Г‚ГІГ®Г°Г®Г©" 
+			Call doc.Replaceitemvalue("KFVV_StoimostDogovora", "Г­ГҐ ГЇГ°ГҐГўГ»ГёГ ГҐГІ 500 Г¬Г«Г­. Г°ГіГЎ.")
 			Call doc.Replaceitemvalue("KFVV_MinRazmerVznosa", 500000)
-		Case "Третий" 
-			Call doc.Replaceitemvalue("KFVV_StoimostDogovora", "не превышает 3 млрд. руб.")
+		Case "Г’Г°ГҐГІГЁГ©" 
+			Call doc.Replaceitemvalue("KFVV_StoimostDogovora", "Г­ГҐ ГЇГ°ГҐГўГ»ГёГ ГҐГІ 3 Г¬Г«Г°Г¤. Г°ГіГЎ.")
 			Call doc.Replaceitemvalue("KFVV_MinRazmerVznosa", 1500000)
-		Case "Четвертый" 
-			Call doc.Replaceitemvalue("KFVV_StoimostDogovora", "не превышает 10 млрд. руб.")
+		Case "Г—ГҐГІГўГҐГ°ГІГ»Г©" 
+			Call doc.Replaceitemvalue("KFVV_StoimostDogovora", "Г­ГҐ ГЇГ°ГҐГўГ»ГёГ ГҐГІ 10 Г¬Г«Г°Г¤. Г°ГіГЎ.")
 			Call doc.Replaceitemvalue("KFVV_MinRazmerVznosa", 2000000)
-		Case "Пятый" 
-			Call doc.Replaceitemvalue("KFVV_StoimostDogovora", "составляет 10 млрд. руб. и более")
+		Case "ГЏГїГІГ»Г©" 
+			Call doc.Replaceitemvalue("KFVV_StoimostDogovora", "Г±Г®Г±ГІГ ГўГ«ГїГҐГІ 10 Г¬Г«Г°Г¤. Г°ГіГЎ. ГЁ ГЎГ®Г«ГҐГҐ")
 			Call doc.Replaceitemvalue("KFVV_MinRazmerVznosa", 5000000)
 	End Select
-	'Ур ответ по ОДО
+	'Г“Г° Г®ГІГўГҐГІ ГЇГ® ГЋГ„ГЋ
 	tmp = Trim(ExcelSheet.Cells(i,76).Value)
 	Call doc.Replaceitemvalue("KFODO_UrovnOtvetstvNum", tmp)
-	'Макс сумма по ОДО
+	'ГЊГ ГЄГ± Г±ГіГ¬Г¬Г  ГЇГ® ГЋГ„ГЋ
 	Select Case tmp
-		Case "Первый" 
-			Call doc.Replaceitemvalue("KFODO_StoimostDogovora", "не превышает 60 млн. руб.")
+		Case "ГЏГҐГ°ГўГ»Г©" 
+			Call doc.Replaceitemvalue("KFODO_StoimostDogovora", "Г­ГҐ ГЇГ°ГҐГўГ»ГёГ ГҐГІ 60 Г¬Г«Г­. Г°ГіГЎ.")
 			Call doc.Replaceitemvalue("KFODO_MinRazmerVznosa", 2000000)
-		Case "Второй" 
-			Call doc.Replaceitemvalue("KFODO_StoimostDogovora", "не превышает 500 млн. руб.")
+		Case "Г‚ГІГ®Г°Г®Г©" 
+			Call doc.Replaceitemvalue("KFODO_StoimostDogovora", "Г­ГҐ ГЇГ°ГҐГўГ»ГёГ ГҐГІ 500 Г¬Г«Г­. Г°ГіГЎ.")
 			Call doc.Replaceitemvalue("KFODO_MinRazmerVznosa", 25000000)
-		Case "Третий" 
-			Call doc.Replaceitemvalue("KFODO_StoimostDogovora", "не превышает 3 млрд. руб.")
+		Case "Г’Г°ГҐГІГЁГ©" 
+			Call doc.Replaceitemvalue("KFODO_StoimostDogovora", "Г­ГҐ ГЇГ°ГҐГўГ»ГёГ ГҐГІ 3 Г¬Г«Г°Г¤. Г°ГіГЎ.")
 			Call doc.Replaceitemvalue("KFODO_MinRazmerVznosa", 45000000)
-		Case "Четвертый" 
-			Call doc.Replaceitemvalue("KFODO_StoimostDogovora", "не превышает 10 млрд. руб.")
+		Case "Г—ГҐГІГўГҐГ°ГІГ»Г©" 
+			Call doc.Replaceitemvalue("KFODO_StoimostDogovora", "Г­ГҐ ГЇГ°ГҐГўГ»ГёГ ГҐГІ 10 Г¬Г«Г°Г¤. Г°ГіГЎ.")
 			Call doc.Replaceitemvalue("KFODO_MinRazmerVznosa", 70000000)
-		Case "Пятый" 
-			Call doc.Replaceitemvalue("KFODO_StoimostDogovora", "составляет 10 млрд. руб. и более")
+		Case "ГЏГїГІГ»Г©" 
+			Call doc.Replaceitemvalue("KFODO_StoimostDogovora", "Г±Г®Г±ГІГ ГўГ«ГїГҐГІ 10 Г¬Г«Г°Г¤. Г°ГіГЎ. ГЁ ГЎГ®Г«ГҐГҐ")
 			Call doc.Replaceitemvalue("KFODO_MinRazmerVznosa", 25000000)
 	End Select
 	
+=======
+	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "Г‘ГўГЁГ¤ГҐГІГҐГ«ГјГ±ГІГўГ® Г® ГЈГ®Г±ГіГ¤Г Г°Г±ГІГўГҐГ­Г­Г®Г© Г°ГҐГЈГЁГ±ГІГ°Г Г¶ГЁГЁ ГѕГ°ГЁГ¤ГЁГ·ГҐГ±ГЄГ®ГЈГ® Г«ГЁГ¶Г ")
+	'ГЋГѓГђГЌ
+	tmp = Val(ExcelSheet.Cells(i,20).Value)
+	Call doc.Replaceitemvalue("OGRN", tmp)
+	'ГЉГ®Г¬Гі ГўГ»Г¤Г Г­Г®
+	Call doc.Replaceitemvalue("KomuVydan", kn)	
+	'Г„Г ГІГ  ГўГ­ГҐГ±ГҐГ­ГЁГї ГЋГѓГђГЌ
+	tmp = DateValue(ExcelSheet.Cells(i,33).Value)
+	Call doc.Replaceitemvalue("DateVnesenieOGRN", tmp)
+	'Г„Г ГІГ  Г°ГҐГЈ ГЇГ°ГҐГ¤ГЇГ°ГЁГїГІГЁГї
+	tmp = DateValue(ExcelSheet.Cells(i,32).Value)
+	Call doc.Replaceitemvalue("DateRegPredpr", tmp)
+
 	
 	Call doc.Save(True, True, True)
 	REM +++++++++++++++++++++++++++++
@@ -701,7 +716,7 @@ handler:
 	ExcelApp.DisplayAlerts = False
 	ExcelApp.Quit
 	Dim strError As String
-	strError = " Ошибка в { функции Filllevelotv}, строка " + CStr(Erl) + Chr(10) + Error$
+	strError = " ГЋГёГЁГЎГЄГ  Гў { ГґГіГ­ГЄГ¶ГЁГЁ Filllevelotv}, Г±ГІГ°Г®ГЄГ  " + CStr(Erl) + Chr(10) + Error$
 	'Error Err, strError
 	MsgBox strError
 	End
