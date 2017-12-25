@@ -119,7 +119,7 @@ Function FillApps(i As Integer)
 		Call doc.Replaceitemvalue("Form", "2211ZajavlenieOVstupleniiVSRO")
 		
 		' Наим дока
-		tmp = ExcelSheet.Cells(i,12)
+		tmp = ExcelSheet.Cells(i,12).Value
 		tmp = Trim(tmp)
 		If Left(tmp, 3)= "При" Then
 			tmp = "Заявление о приемы в члены"
@@ -131,11 +131,11 @@ Function FillApps(i As Integer)
 		Call doc.Replaceitemvalue("NaimenovanieDokumenta", tmp)	
 
 		'Номер дока
-		tmp = ExcelSheet.Cells(i,16)
+		tmp = ExcelSheet.Cells(i,16).Value
 		tmp = Trim(tmp)
 		Call doc.ReplaceItemValue("NomerDocument", tmp)
 		'Дата
-		tmp = ExcelSheet.Cells(i,18)
+		tmp = ExcelSheet.Cells(i,18).Value
 		Call doc.ReplaceItemValue("DataSozdaniya", tmp)
 		'Кем выдано
 		Call doc.Replaceitemvalue("OrgChlenSROТName", pn)	
