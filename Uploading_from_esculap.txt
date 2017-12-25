@@ -19,10 +19,6 @@ Sub Initialize
 	Dim ws As New NotesUIWorkspace
 	Dim ret, path$, i%
 
-	Set ExcelApp = CreateObject("Excel.Application")
-	On Error GoTo handler
-	If Err<>0 Then MsgBox "Excel не установлен на компьютере": GoTo endh
-	
 	' Подключение к Excel
 	On Error Resume Next
 	Set ExcelApp = CreateObject("Excel.Application")
