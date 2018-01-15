@@ -5,7 +5,6 @@
 %END REM
 Option Public
 Option Declare
-Use "PickListFromAnotherDB"
 
 Public ExcelApp As Variant
 Public ExcelSheet As Variant
@@ -85,26 +84,23 @@ Function FillApps(i As Integer)
 	Set view = db.getview("INNtoUNID")
 	Set uidoc = view.Getfirstdocument()
 	
-	innarr = uidoc.Getitemvalue("INN")
-	inntmp = Val(innarr(0))
+	inntmp = Val(uidoc.Getitemvalue("INN")(0))
 	
-	If inn <> inntmp Then
+	While inn <> inntmp
 		Set uidoc = view.Getnextdocument(uidoc)	
-	End If
+		inntmp = Val(uidoc.Getitemvalue("INN")(0))
+	Wend
 	
 		' Создаем документ в БД
 		Set doc = db.Createdocument()
 				
 		On Error GoTo endh 'обработчик ошибок
 		'Получаем SROUNID 
-		unidorgarr = uidoc.Getitemvalue("OrgChlenSROUNID") 
-		unidorg = unidorgarr(0)	
+		unidorg = uidoc.Getitemvalue("OrgChlenSROUNID")(0) 
 		'Получаем pn
-		pnarr = uidoc.Getitemvalue("OrgChlenSROТName")
-		pn = pnarr(0)
+		pn = uidoc.Getitemvalue("OrgChlenSROТName")(0)
 		'Получаем kn
-		knarr = uidoc.Getitemvalue("OrgChlenSROТNameShow") 
-		kn = knarr(0)
+		kn = uidoc.Getitemvalue("OrgChlenSROТNameShow")(0)
 		
 		' Заполняем UNID
 		unid =  doc.Universalid 
