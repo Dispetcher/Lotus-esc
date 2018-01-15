@@ -59,7 +59,7 @@ handler:
 	ExcelApp.DisplayAlerts = False
 	ExcelApp.Quit
 	Dim strError As String
-	strError = " Ошибка в Процедуре { Initialize } из Агента { Дормост Закачка Реестра Excel }, строка " + CStr(Erl) + Chr(10) + Error$
+	strError = " Ошибка в Процедуре { Initialize } из Агента { Загрузка реестра из эскулапа }, строка " + CStr(Erl) + Chr(10) + Error$
 	Error Err, strError
 endh:
 End Sub
