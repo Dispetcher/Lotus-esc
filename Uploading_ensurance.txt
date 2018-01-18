@@ -1,0 +1,234 @@
+%REM
+	Agent Ensurance agreements Uploading from esculap
+	Created 15/01/2018 Dmitry Skoblikov
+	Description: Comments for Agent
+%END REM
+Option Public
+Option Declare
+Use "PickListFromAnotherDB"
+
+Public ExcelApp As Variant
+Public ExcelSheet As Variant
+Dim db As NotesDatabase
+Dim s As NotesSession
+Dim strError As String
+
+Sub Initialize
+	On Error GoTo handler 'обработчик ошибок
+	REM +++++++++++++++++++++++++++++
+	Dim ws As New NotesUIWorkspace
+	Dim ret, path$, i%
+
+	' Подключение к Excel
+	On Error Resume Next
+	Set ExcelApp = CreateObject("Excel.Application")
+	If Err()<>0 Then MsgBox "Excel не установлен": End
+	On Error GoTo handler
+
+	REM +++
+	' Выбираем файл для открытия
+	ret = ws.Openfiledialog(False, "Выбор файла", "Excel_2013|*.xlsx|Excel_2010|*.xls", "D:\", )
+	If IsEmpty(ret) Then GoTo endh
+	path = ret(0)
+	
+	'Открытие файла
+	On Error Resume Next
+	Call ExcelApp.Workbooks.Add(path)
+	If Err()<>0 Then Err=0 : Print "Ошибка при открытии " + path : GoTo endh
+	On Error GoTo handler
+	
+	Set ExcelSheet = ExcelApp.Workbooks(1).Worksheets(1)
+	If Err()<>0 Then Err=0 : Print "Ошибка ExcelApp.Workbooks(1).Worksheets(1) при открытии " : GoTo endh
+	On Error GoTo handler
+	
+	
+	' Определяем БД
+	Set s = New NotesSession
+	'Set db = s.CurrentDatabase
+	
+	For i=2 To 3
+		Call FillAgr(i)
+	Next i
+
+	ExcelApp.DisplayAlerts = False
+	ExcelApp.Quit
+	
+	REM +++++++++++++++++++++++++++++
+	GoTo endh
+handler:
+	ExcelApp.DisplayAlerts = False
+	ExcelApp.Quit
+	Dim strError As String
+	strError = " Ошибка в Процедуре { Initialize } из Агента { Дормост Закачка Реестра Excel }, строка " + CStr(Erl) + Chr(10) + Error$
+	Error Err, strError
+endh:
+End Sub
+%REM
+	Function fillAgr 15/01/18
+	Description: Страховка
+%END REM
+Function FillAgr(i As Integer)
+	On Error GoTo handler 'обработчик ошибок
+	REM +++++++++++++++++++++++++++++	
+	Dim dbst As NotesDatabase
+	Dim unid$, unidorg$, tmp$, tmp2$, opf$, pn$, kn$, inn$, inntmp$, innst$, inntmpst$, str_var$
+	Dim doc, uidoc As NotesDocument
+	Dim view As NotesView
+	
+	' Определяем БД
+	Set db = s.Currentdatabase
+	
+	'Определяем организацию по ИНН и получаем ее UNID и данные
+	inn = ExcelSheet.Cells(i,6).Value
+	inn = Val(Trim(inn))
+	
+	Set view = db.getview("INNtoUNID")
+	Set uidoc = view.Getfirstdocument()
+	
+	inntmp = Val(uidoc.Getitemvalue("INN")(0))
+	
+	While inn <> inntmp
+		Set uidoc = view.Getnextdocument(uidoc)	
+		inntmp = Val(uidoc.Getitemvalue("INN")(0))
+	Wend
+	
+	' Создаем документ в БД
+	Set doc = db.Createdocument()
+	
+	On Error GoTo endh 'обработчик ошибок
+	'Получаем SROUNID 
+	unidorg = uidoc.Getitemvalue("OrgChlenSROUNID")(0) 
+	'Получаем pn
+	pn = uidoc.Getitemvalue("OrgChlenSROТName")(0)
+	'Получаем kn
+	kn = uidoc.Getitemvalue("OrgChlenSROТNameShow")(0) 
+	
+	' Заполняем UNID
+	unid =  doc.Universalid 
+	Call doc.Replaceitemvalue("UNID", unid)
+	' OrgChlenSROTName
+	Call doc.Replaceitemvalue("OrgChlenSROТName", pn)	
+	' OrgChlenSROUNID
+	Call doc.Replaceitemvalue("OrgChlenSROUNID", unidorg)
+	' OrgChlenSROTName
+	Call doc.Replaceitemvalue("OrgChlenSROТNameShow", kn)	
+	' Определяем имя формы
+	Call doc.Replaceitemvalue("Form", "2251DogovorStrahovanijaPolis")
+	
+	' Наим договора
+	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "Договор страхования СРО")	
+
+	'Номер договора
+	tmp = ExcelSheet.Cells(i,16).Value
+	tmp = Trim(tmp)
+	Call doc.ReplaceItemValue("NomerDogovora", tmp)
+	
+	'Дата договора
+	tmp = ExcelSheet.Cells(i,17).Value
+	Call doc.ReplaceItemValue("DataZakljuchenijaDogovora", tmp)
+	
+	'Кому выдано
+	Call doc.Replaceitemvalue("KomuVydan", pn)	
+	
+	'Начало действия договора
+	tmp = ExcelSheet.Cells(i,17).Value
+	Call doc.ReplaceItemValue("NachaloPeriodaStrahovanija", tmp)
+	'Окончание действия
+	tmp = ExcelSheet.Cells(i,18).Value
+	Call doc.ReplaceItemValue("OkonchaniePeriodaStrahovanija", tmp)
+	
+	'Территория страхования
+	Call doc.Replaceitemvalue("TerritorijaStrahovanija", "Российская Федерация")	
+	
+	'Страховая сумма 
+	tmp = ExcelSheet.Cells(i,19).Value
+	Call doc.ReplaceItemValue("ObwijLimitOtvetstvennosti", tmp)
+	
+	'Данные о стаховщике
+	Set dbst = getDB_fast("Strcompany.nsf")
+	
+	innst = ExcelSheet.Cells(i,13).Value
+	innst = Val(Trim(innst))
+	
+	Set view = dbst.getview("StrView")
+	Set uidoc = view.Getfirstdocument()
+	
+	inntmpst = Val(uidoc.Getitemvalue("L")(0))
+
+	
+	While innst <> inntmpst
+		Set uidoc = view.Getnextdocument(uidoc)
+		inntmpst = Val(uidoc.Getitemvalue("L")(0))
+	Wend
+	
+	'Заполняем поля страховщика
+	'---[ Полное наименование ]---
+	str_var = doc.GetItemValue("B")(0)
+	str_var = FullTrim(str_var)
+	Call uidoc.ReplaceItemValue( "Strahovwik",str_var )
+	
+	'---[ Сокращенное наименование ]---
+	str_var = doc.GetItemValue("C")(0)
+	str_var = FullTrim(str_var)
+	Call uidoc.ReplaceItemValue( "Strahovwikminname",str_var )
+	
+	'---[ Номер лицензии Минфина ]---
+	str_var = doc.GetItemValue("E")(0)
+	str_var = FullTrim(str_var)
+	Call uidoc.ReplaceItemValue( "StrahOrgNomerLicenziiFSSN",str_var )
+	
+	'---[ Дата выдачи ФСС ]---
+	str_var = doc.GetItemValue("F")(0)
+	str_var = FullTrim(str_var)
+	'Call this_doc.ReplaceItemValue( "Strahovwikminname",str_var )
+	Call uidoc.ReplaceItemValue("StrahOrgDataVydachiLicenziiFSS", str_var )
+	
+	'---[ ИНН (Страховщика)  ]---
+	str_var = doc.GetItemValue("L")(0)
+	str_var = FullTrim(str_var)
+	Call uidoc.ReplaceItemValue( "StrahOrgINN",str_var )
+	
+	'---[ ОГРН (Страховщика) ]---
+	str_var = doc.GetItemValue("OGRN")(0)
+	str_var = FullTrim(str_var)
+	Call uidoc.ReplaceItemValue( "StrahOrgOGRN",str_var )
+	
+	'---[ Юридический адрес ]---
+	str_var = doc.GetItemValue("K")(0)
+	str_var = FullTrim(str_var)
+	Call uidoc.ReplaceItemValue( "StrahOrgJurAdres",str_var )
+	
+	'---[ Местонахождение  ]---
+	str_var = doc.GetItemValue("Mestonakhozhdenie")(0)
+	str_var = FullTrim(str_var)
+	Call uidoc.ReplaceItemValue( "StrahOrgMestonakhozhdenie",str_var )
+	
+	'---[ Контактный телефон ]---
+	str_var = doc.GetItemValue("I")(0)
+	str_var = FullTrim(str_var)
+	Call uidoc.ReplaceItemValue( "StrahOrgContactTelephon",str_var )
+	
+	'---[ Email ]---
+	str_var = doc.GetItemValue("J")(0)
+	str_var = FullTrim(str_var)
+	Call uidoc.ReplaceItemValue( "StrahOrgEmail",str_var )
+	
+	'---[ Сайт ]---
+	str_var = doc.GetItemValue("Eadres")(0)
+	str_var = FullTrim(str_var)
+	Call uidoc.ReplaceItemValue( "StrahOrgSite",str_var )
+	
+	Call doc.Save(True, True, True)
+
+	REM +++++++++++++++++++++++++++++
+	GoTo endh
+handler:
+	ExcelApp.DisplayAlerts = False
+	ExcelApp.Quit
+	Dim strError As String
+	strError = " Ошибка в { функции FillAgr}, строка " + CStr(Erl) + Chr(10) + Error$
+	'Error Err, strError
+	MsgBox strError
+	End
+endh:
+End Function

@@ -1,0 +1,154 @@
+%REM
+	Agent Applications Uploading from esculap
+	Created 25/12/2017 Dmitry Skoblikov
+	Description: Comments for Agent
+%END REM
+Option Public
+Option Declare
+
+Public ExcelApp As Variant
+Public ExcelSheet As Variant
+Dim db As NotesDatabase
+Dim s As NotesSession
+Dim strError As String
+
+Sub Initialize
+	On Error GoTo handler 'обработчик ошибок
+	REM +++++++++++++++++++++++++++++
+	Dim ws As New NotesUIWorkspace
+	Dim ret, path$, i%
+
+	' Подключение к Excel
+	On Error Resume Next
+	Set ExcelApp = CreateObject("Excel.Application")
+	If Err()<>0 Then MsgBox "Excel не установлен": End
+	On Error GoTo handler
+
+	REM +++
+	' Выбираем файл для открытия
+	ret = ws.Openfiledialog(False, "Выбор файла", "Excel_2013|*.xlsx|Excel_2010|*.xls", "D:\", )
+	If IsEmpty(ret) Then GoTo endh
+	path = ret(0)
+		
+	'Открытие файла
+	On Error Resume Next
+	Call ExcelApp.Workbooks.Add(path)
+	If Err()<>0 Then Err=0 : Print "Ошибка при открытии " + path : GoTo endh
+	On Error GoTo handler
+	
+	Set ExcelSheet = ExcelApp.Workbooks(1).Worksheets(1)
+	If Err()<>0 Then Err=0 : Print "Ошибка ExcelApp.Workbooks(1).Worksheets(1) при открытии " : GoTo endh
+	On Error GoTo handler
+	
+	
+	' Определяем БД
+	Set s = New NotesSession
+	'Set db = s.CurrentDatabase
+	
+	For i=2 To 3
+		Call FillApps(i)
+	Next i
+
+	ExcelApp.DisplayAlerts = False
+	ExcelApp.Quit
+	
+	REM +++++++++++++++++++++++++++++
+	GoTo endh
+handler:
+	ExcelApp.DisplayAlerts = False
+	ExcelApp.Quit
+	Dim strError As String
+	strError = " Ошибка в Процедуре { Initialize } из Агента { Закачка заявлений из эскулапа }, строка " + CStr(Erl) + Chr(10) + Error$
+	Error Err, strError
+endh:
+End Sub
+%REM
+	Function fillApps 25/12/17
+	Description: Заявления
+%END REM
+Function FillApps(i As Integer)
+	On Error GoTo handler 'обработчик ошибок
+	REM +++++++++++++++++++++++++++++	
+	Dim unid$, unidorg$, tmp$, tmp2$, opf$, pn$, kn$, inn$, inntmp$
+	Dim innarr, unidorgarr, pnarr, knarr As Variant
+	Dim doc, uidoc As NotesDocument
+	Dim view As NotesView
+	
+	' Определяем БД
+	Set db = s.Currentdatabase
+	
+	'Определяем организацию по ИНН и получаем ее UNID и данные
+	inn = ExcelSheet.Cells(i,2).Value
+	inn = Val(Trim(inn))
+	
+	Set view = db.getview("INNtoUNID")
+	Set uidoc = view.Getfirstdocument()
+	
+	inntmp = Val(uidoc.Getitemvalue("INN")(0))
+	
+	While inn <> inntmp
+		Set uidoc = view.Getnextdocument(uidoc)	
+		inntmp = Val(uidoc.Getitemvalue("INN")(0))
+	Wend
+	
+		' Создаем документ в БД
+		Set doc = db.Createdocument()
+				
+		On Error GoTo endh 'обработчик ошибок
+		'Получаем SROUNID 
+		unidorg = uidoc.Getitemvalue("OrgChlenSROUNID")(0) 
+		'Получаем pn
+		pn = uidoc.Getitemvalue("OrgChlenSROТName")(0)
+		'Получаем kn
+		kn = uidoc.Getitemvalue("OrgChlenSROТNameShow")(0)
+		
+		' Заполняем UNID
+		unid =  doc.Universalid 
+		Call doc.Replaceitemvalue("UNID", unid)
+		' OrgChlenSROTName
+		Call doc.Replaceitemvalue("OrgChlenSROТName", pn)	
+		' OrgChlenSROUNID
+		Call doc.Replaceitemvalue("OrgChlenSROUNID", unidorg)
+		' OrgChlenSROTName
+		Call doc.Replaceitemvalue("OrgChlenSROТNameShow", kn)	
+		' Определяем имя формы
+		Call doc.Replaceitemvalue("Form", "2211ZajavlenieOVstupleniiVSRO")
+		
+		' Наим дока
+		tmp = ExcelSheet.Cells(i,12).Value
+		tmp = Trim(tmp)
+		If Left(tmp, 3)= "При" Then
+			tmp = "Заявление о приемы в члены"
+		ElseIf Left(tmp, 3)= "Пер" Or Left(tmp, 3)= "Вне" Then
+			tmp = "Заявление о переоформлении"
+		ElseIf Left(tmp,3) = "Воз" Then
+			tmp = "Заявление о возообновлении"
+		End If 
+		Call doc.Replaceitemvalue("NaimenovanieDokumenta", tmp)	
+
+		'Номер дока
+		tmp = ExcelSheet.Cells(i,16).Value
+		tmp = Trim(tmp)
+		Call doc.ReplaceItemValue("NomerDocument", tmp)
+		'Дата
+		tmp = ExcelSheet.Cells(i,18).Value
+		Call doc.ReplaceItemValue("DataSozdaniya", tmp)
+		'Кем выдано
+		Call doc.Replaceitemvalue("OrgChlenSROТName", pn)	
+		
+		Call doc.Save(True, True, True)
+
+	
+	
+	REM +++++++++++++++++++++++++++++
+	GoTo endh
+handler:
+	ExcelApp.DisplayAlerts = False
+	ExcelApp.Quit
+	Dim strError As String
+	strError = " Ошибка в { функции FillApps}, строка " + CStr(Erl) + Chr(10) + Error$
+	'Error Err, strError
+	MsgBox strError
+	End
+endh:
+End Function
