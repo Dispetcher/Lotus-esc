@@ -163,60 +163,60 @@ Function FillAgr(i As Integer)
 	
 	'Заполняем поля страховщика
 	'---[ Полное наименование ]---
-	str_var = doc.GetItemValue("B")(0)
+	str_var = uidoc.GetItemValue("B")(0)
 	str_var = FullTrim(str_var)
-	Call uidoc.ReplaceItemValue( "Strahovwik",str_var )
+	Call doc.ReplaceItemValue( "Strahovwik",str_var )
 	
 	'---[ Сокращенное наименование ]---
-	str_var = doc.GetItemValue("C")(0)
+	str_var = uidoc.GetItemValue("C")(0)
 	str_var = FullTrim(str_var)
-	Call uidoc.ReplaceItemValue( "Strahovwikminname",str_var )
+	Call doc.ReplaceItemValue( "Strahovwikminname",str_var )
 	
 	'---[ Номер лицензии Минфина ]---
-	str_var = doc.GetItemValue("E")(0)
+	str_var = uidoc.GetItemValue("E")(0)
 	str_var = FullTrim(str_var)
-	Call uidoc.ReplaceItemValue( "StrahOrgNomerLicenziiFSSN",str_var )
+	Call doc.ReplaceItemValue( "StrahOrgNomerLicenziiFSSN",str_var )
 	
 	'---[ Дата выдачи ФСС ]---
-	str_var = doc.GetItemValue("F")(0)
+	str_var = uidoc.GetItemValue("F")(0)
 	str_var = FullTrim(str_var)
 	'Call this_doc.ReplaceItemValue( "Strahovwikminname",str_var )
-	Call uidoc.ReplaceItemValue("StrahOrgDataVydachiLicenziiFSS", str_var )
+	Call doc.ReplaceItemValue("StrahOrgDataVydachiLicenziiFSS", str_var )
 	
 	'---[ ИНН (Страховщика)  ]---
-	str_var = doc.GetItemValue("L")(0)
+	str_var = uidoc.GetItemValue("L")(0)
 	str_var = FullTrim(str_var)
-	Call uidoc.ReplaceItemValue( "StrahOrgINN",str_var )
+	Call doc.ReplaceItemValue( "StrahOrgINN",str_var )
 	
 	'---[ ОГРН (Страховщика) ]---
-	str_var = doc.GetItemValue("OGRN")(0)
+	str_var = uidoc.GetItemValue("OGRN")(0)
 	str_var = FullTrim(str_var)
-	Call uidoc.ReplaceItemValue( "StrahOrgOGRN",str_var )
+	Call doc.ReplaceItemValue( "StrahOrgOGRN",str_var )
 	
 	'---[ Юридический адрес ]---
-	str_var = doc.GetItemValue("K")(0)
+	str_var = uidoc.GetItemValue("K")(0)
 	str_var = FullTrim(str_var)
-	Call uidoc.ReplaceItemValue( "StrahOrgJurAdres",str_var )
+	Call doc.ReplaceItemValue( "StrahOrgJurAdres",str_var )
 	
 	'---[ Местонахождение  ]---
-	str_var = doc.GetItemValue("Mestonakhozhdenie")(0)
+	str_var = uidoc.GetItemValue("Mestonakhozhdenie")(0)
 	str_var = FullTrim(str_var)
 	Call uidoc.ReplaceItemValue( "StrahOrgMestonakhozhdenie",str_var )
 	
 	'---[ Контактный телефон ]---
-	str_var = doc.GetItemValue("I")(0)
+	str_var = uidoc.GetItemValue("I")(0)
 	str_var = FullTrim(str_var)
-	Call uidoc.ReplaceItemValue( "StrahOrgContactTelephon",str_var )
+	Call doc.ReplaceItemValue( "StrahOrgContactTelephon",str_var )
 	
 	'---[ Email ]---
-	str_var = doc.GetItemValue("J")(0)
+	str_var = uidoc.GetItemValue("J")(0)
 	str_var = FullTrim(str_var)
-	Call uidoc.ReplaceItemValue( "StrahOrgEmail",str_var )
+	Call doc.ReplaceItemValue( "StrahOrgEmail",str_var )
 	
 	'---[ Сайт ]---
-	str_var = doc.GetItemValue("Eadres")(0)
+	str_var = uidoc.GetItemValue("Eadres")(0)
 	str_var = FullTrim(str_var)
-	Call uidoc.ReplaceItemValue( "StrahOrgSite",str_var )
+	Call doc.ReplaceItemValue( "StrahOrgSite",str_var )
 	
 	Call doc.Save(True, True, True)
 
