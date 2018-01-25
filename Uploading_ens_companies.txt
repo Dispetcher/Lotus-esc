@@ -1,70 +1,4 @@
 %REM
-	Agent 1.3 Загрузка страховых компаний из эскулапа
-	Created 18.01.2018 by Дмитрий Викторович Скобликов/sro
-	Description: Comments for Agent
-%END REM
-Option Public
-Option Declare
-Use "PickListFromAnotherDB"
-
-Public ExcelApp As Variant
-Public ExcelSheet As Variant
-Dim db As NotesDatabase
-Dim s As NotesSession
-Dim strError As String
-
-Sub Initialize
-	On Error GoTo handler 'обработчик ошибок
-	REM +++++++++++++++++++++++++++++
-	Dim ws As New NotesUIWorkspace
-	Dim ret, path$, i%
-
-	' Подключение к Excel
-	On Error Resume Next
-	Set ExcelApp = CreateObject("Excel.Application")
-	If Err()<>0 Then MsgBox "Excel не установлен": End
-	On Error GoTo handler
-
-	REM +++
-	' Выбираем файл для открытия
-	ret = ws.Openfiledialog(False, "Выбор файла", "Excel_2013|*.xlsx|Excel_2010|*.xls", "D:\", )
-	If IsEmpty(ret) Then GoTo endh
-	path = ret(0)
-	
-	'Открытие файла
-	On Error Resume Next
-	Call ExcelApp.Workbooks.Add(path)
-	If Err()<>0 Then Err=0 : Print "Ошибка при открытии " + path : GoTo endh
-	On Error GoTo handler
-	
-	Set ExcelSheet = ExcelApp.Workbooks(1).Worksheets(1)
-	If Err()<>0 Then Err=0 : Print "Ошибка ExcelApp.Workbooks(1).Worksheets(1) при открытии " : GoTo endh
-	On Error GoTo handler
-	
-	
-	' Определяем БД
-	Set s = New NotesSession
-	'Set db = s.CurrentDatabase
-	
-	For i=2 To 3
-		Call FillComp(i)
-	Next i
-
-	ExcelApp.DisplayAlerts = False
-	ExcelApp.Quit
-	
-	REM +++++++++++++++++++++++++++++
-	GoTo endh
-handler:
-	ExcelApp.DisplayAlerts = False
-	ExcelApp.Quit
-	Dim strError As String
-	strError = " Ошибка в Процедуре { Initialize } из Агента { Дормост Закачка Реестра Excel }, строка " + CStr(Erl) + Chr(10) + Error$
-	Error Err, strError
-endh:
-End Sub
-
-%REM
 	Function FillComp 18/01/2018
 	Description: Загрузка страховых компаний
 %END REM
@@ -73,12 +7,22 @@ Function FillComp(i As Integer)
 	REM +++++++++++++++++++++++++++++	
 	Dim db As NotesDatabase
 	Dim tmp$, tmp2$, inn$, inntmp$, unid$
+	Dim n As Integer
+	Dim arr As Variant
 	Dim doc, uidoc As NotesDocument
 	Dim view As NotesView
+	Dim entry_col As NotesViewEntryCollection, entry As NotesViewEntry
 	
 	Set db = getDB_fast("Strcompany.nsf")
 	Set view = db.getview("StrView")
 	Set doc = view.Getfirstdocument()
+	
+	Set entry_col = view.Allentries
+	Set entry = entry_col.Getfirstentry()
+	
+	'Определяем кол-во документов в виде
+'	Set arr = view.getAllDocumentsbyKey("PN")
+	'n = UBound(arr)
 	
 	'ИНН страховщика из экселя
 	inn = ExcelSheet.Cells(i,2).Value
@@ -86,15 +30,19 @@ Function FillComp(i As Integer)
 	
 	'ИНН из базы
 	inntmp = Val(doc.Getitemvalue("L")(0))
-'------ Нужен цикл по перебору и использования на посл элементе GetLastDocument
 	
-	While inn <> inntmp
-		Set doc = view.Getnextdocument(doc)
-		If Err()<>0 Then GoTo Create_doc	
-		inntmp = Val(doc.Getitemvalue("L")(0))
+	
+	While Not(entry Is Nothing)
+		
+		If entry.Isdocument Then
+			Set doc = entry.Document	
+			inntmp = Val(doc.Getitemvalue("L")(0))
+				If inn=inntmp Then GoTo endh
+		End If
+		
+		Set entry = entry_col.Getnextentry(entry)
 	Wend
 	
-Create_doc:
 	' Создаем документ в БД
 	Set uidoc = db.Createdocument()
 	
@@ -118,7 +66,7 @@ Create_doc:
 	tmp =  ExcelSheet.Cells(i,7).Value
 	Call uidoc.ReplaceItemValue("K", tmp)
 	
-	
+	Call uidoc.Save(True, True, True)
 	REM +++++++++++++++++++++++++++++
 	GoTo endh
 handler:
