@@ -1,0 +1,81 @@
+%REM
+	Function FillComp 18/01/2018
+	Description: Загрузка страховых компаний
+%END REM
+Function FillComp(i As Integer)
+	On Error GoTo handler 'обработчик ошибок
+	REM +++++++++++++++++++++++++++++	
+	Dim db As NotesDatabase
+	Dim tmp$, tmp2$, inn$, inntmp$, unid$
+	Dim n As Integer
+	Dim arr As Variant
+	Dim doc, uidoc As NotesDocument
+	Dim view As NotesView
+	Dim entry_col As NotesViewEntryCollection, entry As NotesViewEntry
+	
+	Set db = getDB_fast("Strcompany.nsf")
+	Set view = db.getview("StrView")
+	Set doc = view.Getfirstdocument()
+	
+	Set entry_col = view.Allentries
+	Set entry = entry_col.Getfirstentry()
+	
+	'Определяем кол-во документов в виде
+'	Set arr = view.getAllDocumentsbyKey("PN")
+	'n = UBound(arr)
+	
+	'ИНН страховщика из экселя
+	inn = ExcelSheet.Cells(i,2).Value
+	inn = Val(Trim(inn))
+	
+	'ИНН из базы
+	inntmp = Val(doc.Getitemvalue("L")(0))
+	
+	
+	While Not(entry Is Nothing)
+		
+		If entry.Isdocument Then
+			Set doc = entry.Document	
+			inntmp = Val(doc.Getitemvalue("L")(0))
+				If inn=inntmp Then GoTo endh
+		End If
+		
+		Set entry = entry_col.Getnextentry(entry)
+	Wend
+	
+	' Создаем документ в БД
+	Set uidoc = db.Createdocument()
+	
+	unid = uidoc.Universalid 
+	Call uidoc.Replaceitemvalue("UNID", unid)
+	
+	tmp = ExcelSheet.Cells(i,1).Value
+	Call uidoc.Replaceitemvalue("C", tmp)
+
+	Call uidoc.ReplaceItemValue("L", inn)
+	
+	'Лицензия
+	tmp =  ExcelSheet.Cells(i,3).Value
+	Call uidoc.ReplaceItemValue("E", tmp)
+	
+	'Дата лицензии
+	tmp =  ExcelSheet.Cells(i,4).Value
+	Call uidoc.ReplaceItemValue("F", tmp)
+	
+	'Юр адрес
+	tmp =  ExcelSheet.Cells(i,7).Value
+	Call uidoc.ReplaceItemValue("K", tmp)
+	
+	Call uidoc.Save(True, True, True)
+	REM +++++++++++++++++++++++++++++
+	GoTo endh
+handler:
+	ExcelApp.DisplayAlerts = False
+	ExcelApp.Quit
+	Dim strError As String
+	strError = " Ошибка в { функции FillComp}, строка " + CStr(Erl) + Chr(10) + Error$
+	'Error Err, strError
+	MsgBox strError
+	End
+endh:
+End Function
