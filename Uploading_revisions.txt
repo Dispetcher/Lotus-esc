@@ -45,7 +45,7 @@ Sub Initialize
 	Set s = New NotesSession
 	'Set db = s.CurrentDatabase
 	
-	For i=2 To 3
+	For i=539 To 540
 		Call FillRevisions(i)
 	Next i
 
