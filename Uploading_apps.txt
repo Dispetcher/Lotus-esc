@@ -1,6 +1,7 @@
 %REM
 	Agent Applications Uploading from esculap
 	Created 25/12/2017 Dmitry Skoblikov
+	Edited 25/10/2018 Dmitry Skoblikov
 	Description: Comments for Agent
 %END REM
 Option Public
@@ -11,6 +12,7 @@ Public ExcelSheet As Variant
 Dim db As NotesDatabase
 Dim s As NotesSession
 Dim strError As String
+Dim j%
 
 Sub Initialize
 	On Error GoTo handler 'обработчик ошибок
@@ -45,9 +47,11 @@ Sub Initialize
 	Set s = New NotesSession
 	'Set db = s.CurrentDatabase
 	
-	For i=2 To 3
+	For i=2 To 745
 		Call FillApps(i)
 	Next i
+	
+	MsgBox "Обработано " + Str(i-2) + " заявлений," + Chr(10) + "Не добавлено - " + Str(j)
 
 	ExcelApp.DisplayAlerts = False
 	ExcelApp.Quit
@@ -73,7 +77,7 @@ Function FillApps(i As Integer)
 	Dim innarr, unidorgarr, pnarr, knarr As Variant
 	Dim doc, uidoc As NotesDocument
 	Dim view As NotesView
-	
+
 	' Определяем БД
 	Set db = s.Currentdatabase
 	
@@ -87,10 +91,16 @@ Function FillApps(i As Integer)
 	inntmp = Val(uidoc.Getitemvalue("INN")(0))
 	
 	While inn <> inntmp
-		Set uidoc = view.Getnextdocument(uidoc)	
+		If view.Getnextdocument(uidoc) Is Nothing Then 
+			j = j+1
+			GoTo endh
+		Else
+			Set uidoc = view.Getnextdocument(uidoc)	
+		End If
+		
 		inntmp = Val(uidoc.Getitemvalue("INN")(0))
 	Wend
-	
+		
 		' Создаем документ в БД
 		Set doc = db.Createdocument()
 				
@@ -113,6 +123,7 @@ Function FillApps(i As Integer)
 		Call doc.Replaceitemvalue("OrgChlenSROТNameShow", kn)	
 		' Определяем имя формы
 		Call doc.Replaceitemvalue("Form", "2211ZajavlenieOVstupleniiVSRO")
+		Call doc.Replaceitemvalue("Readers_Ex", "[OPS]")
 		
 		' Наим дока
 		tmp = ExcelSheet.Cells(i,12).Value
@@ -146,7 +157,7 @@ handler:
 	ExcelApp.DisplayAlerts = False
 	ExcelApp.Quit
 	Dim strError As String
-	strError = " Ошибка в { функции FillApps}, строка " + CStr(Erl) + Chr(10) + Error$
+	strError = " Ошибка в { функции FillApps}, организации "+ pn +", строка " + CStr(Erl) + Chr(10) + Error$
 	'Error Err, strError
 	MsgBox strError
 	End

@@ -1,6 +1,7 @@
 ﻿%REM
 	Agent Uploading from esculap
 	Created 20/12/2017 Dmitry Skoblikov
+	Edited 25/10/2018 Dmitry Skoblikov
 	Description: Comments for Agent
 %END REM
 Option Public
@@ -46,10 +47,12 @@ Sub Initialize
 	Set s = New NotesSession
 	'Set db = s.CurrentDatabase
 	
-	For i=2 To 3
+	For i=2 To 105
 		Call FillProcess(i)
 	Next i
-
+	
+	MsgBox "Загружено" + Str(i-1) + " организаций"
+	
 	ExcelApp.DisplayAlerts = False
 	ExcelApp.Quit
 	
@@ -82,6 +85,7 @@ Function FillEgrul(i%, unidorg$, opf$, pn$, kn$)
 	Call header(doc, pn, unidorg, kn)
 	' Определяем имя формы
 	Call doc.Replaceitemvalue("Form", "22226VypiskaIzEGRJuL")
+	Call doc.Replaceitemvalue("Readers_Ex", "[OPS]")
 	
 	
 	'Наим дока
@@ -96,7 +100,7 @@ Function FillEgrul(i%, unidorg$, opf$, pn$, kn$)
 	If opf = "ОАО" Then
 		opffull = "Откртытое акционерное общество" 
 	ElseIf opf = "ЗАО" Then
-		opffull = "Закртытое акционерное общество"
+		opffull = "Закрытое акционерное общество"
 	ElseIf opf = "АО" Then
 		opffull = "Акционерное общество"	
 	ElseIf opf = "ООО" Then
@@ -207,24 +211,20 @@ handler:
 	ExcelApp.DisplayAlerts = False
 	ExcelApp.Quit
 	Dim strError As String
-	strError = " Ошибка в { функции FillEgrul}, строка " + CStr(Erl) + Chr(10) + Error$
+	strError = " Ошибка в { функции FillEgrul}, строка " + CStr(Erl) + Chr(10) + pn + Chr(10) + Error$
 	'Error Err, strError
 	MsgBox strError
 	End
 endh:
 End Function
 %REM
-<<<<<<< HEAD
-	Function fillinn 21/12/17
-=======
 	Function fillruk 21/12/17
->>>>>>> dev
 	Description: Протокол назначения руководителя
 %END REM
 Function FillRuk(i As Integer, unidorg$, opf$, pn$, kn$)
 	On Error GoTo handler 'обработчик ошибок
 	REM +++++++++++++++++++++++++++++	
-	Dim unid$, tmp$, opffull$, y%, m%, d%, data$
+	Dim unid$, tmp$, tmp_ot$, opffull$, y%, m%, d%, data$
 	Dim tmp2 As Variant
 	Dim doc As NotesDocument
 
@@ -236,6 +236,7 @@ Function FillRuk(i As Integer, unidorg$, opf$, pn$, kn$)
 	Call header(doc, pn, unidorg, kn)
 	' Определяем имя формы
 	Call doc.Replaceitemvalue("Form", "22217ProtokolNaznachRukov")
+	Call doc.Replaceitemvalue("Readers_Ex", "[OPS]")
 	
 	'Наим дока
 	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "Протокол")
@@ -251,7 +252,12 @@ Function FillRuk(i As Integer, unidorg$, opf$, pn$, kn$)
 	'Имя рук
 	Call doc.Replaceitemvalue("Name", tmp2(1))
 	'Отч рук
-	Call doc.Replaceitemvalue("Otchstvo", tmp2(2))
+	If tmp2(2) = "" Then
+		tmp_ot = " "
+	Else
+		tmp_ot = tmp2(2)
+	End If
+	Call doc.Replaceitemvalue("Otchstvo", tmp_ot)
 	'Должность рук
 	tmp = ExcelSheet.Cells(i,12).Value
 	Call doc.Replaceitemvalue("Dolzhnost", tmp)	
@@ -271,7 +277,7 @@ Function FillRuk(i As Integer, unidorg$, opf$, pn$, kn$)
 	REM +++++++++++++++++++++++++++++
 	GoTo endh
 handler:
-	strError = " Ошибка в { функции FillRuk}, строка " + CStr(Erl) + Chr(10) + Error$
+	strError = " Ошибка в { функции FillRuk}, строка " + CStr(Erl) + Chr(10) + pn + Chr(10)+ Error$
 	'Error Err, strError
 	MsgBox strError
 	End
@@ -296,6 +302,7 @@ Function fillinn(i%, unidorg$, opf$, pn$, kn$)
 	Call header(doc, pn, unidorg, kn)
 	' Определяем имя формы
 	Call doc.Replaceitemvalue("Form", "22212SvidOPrisvoenii")
+	Call doc.Replaceitemvalue("Readers_Ex", "[OPS]")
 	
 	'Наим дока
 	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "Свидетельство о постановке на налоговый учет юридического лица")
@@ -323,24 +330,20 @@ handler:
 	ExcelApp.DisplayAlerts = False
 	ExcelApp.Quit
 	Dim strError As String
-	strError = " Ошибка в { функции FillINN}, строка " + CStr(Erl) + Chr(10) + Error$
+	strError = " Ошибка в { функции FillINN}, строка " + CStr(Erl) + Chr(10) + pn + Chr(10)+ Error$
 	'Error Err, strError
 	MsgBox strError
 	End
 endh:	
 End Function
 %REM
-<<<<<<< HEAD
-	Function fillinn 20/12/17
-=======
 	Function fillprocess 20/12/17
->>>>>>> dev
 	Description: Головная форма Процесс-OrgChlenSRO
 %END REM
 Function FillProcess(i As Integer)
 	On Error GoTo handler 'обработчик ошибок
 	REM +++++++++++++++++++++++++++++	
-	Dim unidorg$, tmp$, tmp2$, opf$, pn$, kn$, datecrt$
+	Dim unidorg$, tmp$, tmp2$, opf$, pn$, kn$, datecrt$, opffull$
 	Dim doc As NotesDocument
 	On Error Resume Next
 
@@ -359,17 +362,32 @@ Function FillProcess(i As Integer)
 	' Ставим действующую организацию
 	Call doc.Replaceitemvalue("OrgStatus", "2" )
 	Call doc.Replaceitemvalue("FromCandidatToChlen", "1" )
+	Call doc.Replaceitemvalue("Readers_Ex", "[OPS]")
 
 	
 	' Полное наим орг
 	' ОПФ
 	opf = ExcelSheet.Cells(i,6).Value
 	opf = FullTrim(opf)
+	
+	' ОПФ
+	If opf = "ОАО" Then
+		opffull = "Откртытое акционерное общество" 
+	ElseIf opf = "ЗАО" Then
+		opffull = "Закрытое акционерное общество"
+	ElseIf opf = "АО" Then
+		opffull = "Акционерное общество"	
+	ElseIf opf = "ООО" Then
+		opffull = "Общество с ограниченной ответственностью"	
+	ElseIf opf = "ГУП" Then
+		opffull = "Государственное унитарное предприятие"		
+	End If
+	
 	' Часть полн. наименования
 	pn = ExcelSheet.Cells(i,9).Value
 	pn = FullTrim(pn)
 	
-	pn = opf + " " + pn
+	pn = opffull + " " + pn
 	Call doc.Replaceitemvalue("OrgChlenSROТName", pn)	
 	Call doc.Replaceitemvalue("PolnoeNaimenovanieOrg", pn)
 	
@@ -391,6 +409,9 @@ Function FillProcess(i As Integer)
 	'Дата рег в реестре СРО
 	tmp = DateValue(ExcelSheet.Cells(i,24).Value)
 	Call doc.Replaceitemvalue("DateRegistr", tmp)
+	
+	'Заполняем пункт - действующая организаций
+	Call doc.Replaceitemvalue("VykhodNP_Option", "0")
 	
 	' Номер рег записи - номер реестра
 	tmp = ExcelSheet.Cells(i,1).Value
@@ -418,7 +439,7 @@ handler:
 	ExcelApp.DisplayAlerts = False
 	ExcelApp.Quit
 	Dim strError As String
-	strError = " Ошибка в { функции FillProcess}, строка " + CStr(Erl) + Chr(10) + Error$
+	strError = " Ошибка в { функции FillProcess}, строка " + CStr(Erl) + Chr(10) + pn + Chr(10)+ Error$
 	'Error Err, strError
 	MsgBox strError
 	End
@@ -472,6 +493,7 @@ Function filllevelotv(i%, unidorg$, opf$, pn$, kn$)
 	Call header(doc, pn, unidorg, kn)
 	' Определяем имя формы
 	Call doc.Replaceitemvalue("Form", "2271ZayavUrovnOtvetstv")
+	Call doc.Replaceitemvalue("Readers_Ex", "[OPS]")
 	
 	'Наим дока
 	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "Заявление об уровнях ответственности")
@@ -528,7 +550,7 @@ handler:
 	ExcelApp.DisplayAlerts = False
 	ExcelApp.Quit
 	Dim strError As String
-	strError = " Ошибка в { функции Filllevelotv}, строка " + CStr(Erl) + Chr(10) + Error$
+	strError = " Ошибка в { функции Filllevelotv}, строка " + CStr(Erl) + Chr(10) + pn + Chr(10) + Error$
 	'Error Err, strError
 	MsgBox strError
 	End
@@ -579,7 +601,7 @@ handler:
 	ExcelApp.DisplayAlerts = False
 	ExcelApp.Quit
 	Dim strError As String
-	strError = " Ошибка в { функции FillOGRN}, строка " + CStr(Erl) + Chr(10) + Error$
+	strError = " Ошибка в { функции FillOGRN}, строка " + CStr(Erl) + Chr(10) + pn + Chr(10)+ Error$
 	'Error Err, strError
 	MsgBox strError
 	End
@@ -604,6 +626,7 @@ Function FillAnk(i As Integer, unidorg$, opf$, pn$, kn$, datecrt$ )
 	Call header(doc, pn, unidorg, kn)
 	' Определяем имя формы
 	Call doc.Replaceitemvalue("Form", "2214Anketa")
+	Call doc.Replaceitemvalue("Readers_Ex", "[OPS]")
 	
 	'Наим документа
 	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "Сведения об организации")	
@@ -655,7 +678,7 @@ Function FillAnk(i As Integer, unidorg$, opf$, pn$, kn$, datecrt$ )
 	GoTo endh
 handler:
 	Dim strError As String
-	strError = " Ошибка в { функции FillAnk}, строка " + CStr(Erl) + Chr(10) + Error$
+	strError = " Ошибка в { функции FillAnk}, строка " + CStr(Erl) + Chr(10) + pn + Chr(10) + Error$
 	'Error Err, strError
 	MsgBox strError
 	End
@@ -687,6 +710,7 @@ Function filllicense(i%, unidorg$, opf$, pn$, kn$)
 	Call header(doc, pn, unidorg, kn)
 	' Определяем имя формы
 	Call doc.Replaceitemvalue("Form", "22232LicenziiNaVidyRabot")
+	Call doc.Replaceitemvalue("Readers_Ex", "[OPS]")
 	
 	'Наим дока
 	Call doc.Replaceitemvalue("NaimenovanieDokumenta", "Лицензия")
@@ -709,7 +733,7 @@ handler:
 	ExcelApp.DisplayAlerts = False
 	ExcelApp.Quit
 	Dim strError As String
-	strError = " Ошибка в { функции FillLicense}, строка " + CStr(Erl) + Chr(10) + Error$
+	strError = " Ошибка в { функции FillLicense}, строка " + CStr(Erl) + Chr(10) + pn + Chr(10) +Error$
 	'Error Err, strError
 	MsgBox strError
 	End
