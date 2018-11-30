@@ -58,13 +58,13 @@ handler:
 	ExcelApp.DisplayAlerts = False
 	ExcelApp.Quit
 	Dim strError As String
-	strError = " Ошибка в Процедуре { Initialize } из Агента { Закачка заявлений из эскулапа }, строка " + CStr(Erl) + Chr(10) + Error$
+	strError = " Ошибка в Процедуре { Initialize } из Агента { Закачка проверок из эскулапа }, строка " + CStr(Erl) + Chr(10) + Error$
 	Error Err, strError
 endh:
 End Sub
 %REM
-	Function fillApps 25/12/17
-	Description: Заявления
+	Function FillRevisions 25/12/17
+	Description: Проверки
 %END REM
 Function FillRevisions(i As Integer)
 	On Error GoTo handler 'обработчик ошибок
@@ -117,11 +117,11 @@ Function FillRevisions(i As Integer)
 	' Тип проверки
 	tmp = ExcelSheet.Cells(i,10).Value
 	tmp = Trim(tmp)
-	If tmp = "Первичная" Then 
+	If tmp = "Плановая" Then
 		tmp2 = "0"
-	ElseIf tmp = "Плановая" Then
-		tmp2 = "1"
 	ElseIf tmp = "Внеплановая" Then
+		tmp2 = "1"
+	ElseIf tmp = "Первичная" Then
 		tmp2 = "2"
 	End if
 	Call doc.Replaceitemvalue("TipProverki", tmp2)	
@@ -129,7 +129,7 @@ Function FillRevisions(i As Integer)
 	'Номер акта проверки
 	tmp = ExcelSheet.Cells(i,6).Value
 	tmp = Trim(tmp)
-	Call doc.ReplaceItemValue("ActNum", tmp)
+	Call doc.ReplaceItemValue("NumAct", tmp)
 	
 	'Дата акта
 	tmp = ExcelSheet.Cells(i,5).Value
@@ -151,12 +151,27 @@ Function FillRevisions(i As Integer)
 
 	'Форма проверки
 	tmp = ExcelSheet.Cells(i,13).Value
-	Call doc.ReplaceItemValue("FormaProverki", tmp)
+	If tmp = "Документарная" Then
+		tmp2 = "2"
+	ElseIf tmp = "Выездная" Then
+		tmp2 = "0"
+	End if
+	Call doc.ReplaceItemValue("FormaProverki", tmp2)
 	
 	'Место проверки
-	tmp = ExcelSheet.Cells(i,16).Value
+	If tmp2 = "2" Then
+		tmp = ""
+	Else
+		tmp = ExcelSheet.Cells(i,16).Value
+	End if
 	Call doc.ReplaceItemValue("MestoProverki", tmp)
+	
+	'Предмет проверки
+	Call doc.ReplaceItemValue("MestoProverki", "соответствие правилам саморегулирования")
 
+	'Результат проверки
+	Call doc.ReplaceItemValue("RezultatProverki", "1")
+	
 	'ФИО проверяющего
 	tmp = ExcelSheet.Cells(i,17).Value
 	If tmp = "-не определено-" Then tmp=""
