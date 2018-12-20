@@ -1,5 +1,5 @@
 %REM
-	Function FillComp 18/01/2018
+	Function FillComp 18/12/2018
 	Description: Загрузка страховых компаний
 %END REM
 Function FillComp(i As Integer)
@@ -7,7 +7,6 @@ Function FillComp(i As Integer)
 	REM +++++++++++++++++++++++++++++	
 	Dim db As NotesDatabase
 	Dim tmp$, tmp2$, inn$, inntmp$, unid$
-	Dim n As Integer
 	Dim arr As Variant
 	Dim doc, uidoc As NotesDocument
 	Dim view As NotesView
@@ -46,6 +45,8 @@ Function FillComp(i As Integer)
 	' Создаем документ в БД
 	Set uidoc = db.Createdocument()
 	
+	Call uidoc.Replaceitemvalue("form", "StrahovOrg")
+	
 	unid = uidoc.Universalid 
 	Call uidoc.Replaceitemvalue("UNID", unid)
 	
@@ -67,6 +68,8 @@ Function FillComp(i As Integer)
 	Call uidoc.ReplaceItemValue("K", tmp)
 	
 	Call uidoc.Save(True, True, True)
+	
+	n = n+1
 	REM +++++++++++++++++++++++++++++
 	GoTo endh
 handler:
