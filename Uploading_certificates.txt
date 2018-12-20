@@ -1,0 +1,198 @@
+%REM
+	Agent Sercificates Uploading from esculap
+	Created 20/12/2018 Dmitry Skoblikov
+	Description: Comments for Agent
+%END REM
+Option Public
+Option Declare
+
+Public ExcelApp As Variant
+Public ExcelSheet As Variant
+Dim db As NotesDatabase
+Dim s As NotesSession
+Dim strError As String
+Dim j%
+
+Sub Initialize
+	On Error GoTo handler 'обработчик ошибок
+	REM +++++++++++++++++++++++++++++
+	Dim ws As New NotesUIWorkspace
+	Dim ret, path$, i%, txt$
+
+	' Подключение к Excel
+	On Error Resume Next
+	Set ExcelApp = CreateObject("Excel.Application")
+	If Err()<>0 Then MsgBox "Excel не установлен": End
+	On Error GoTo handler
+
+	REM +++
+	' Выбираем файл для открытия
+	ret = ws.Openfiledialog(False, "Выбор файла", "Excel_2013|*.xlsx|Excel_2010|*.xls", "D:\", )
+	If IsEmpty(ret) Then GoTo endh
+	path = ret(0)
+	
+	'Открытие файла
+	On Error Resume Next
+	Call ExcelApp.Workbooks.Add(path)
+	If Err()<>0 Then Err=0 : Print "Ошибка при открытии " + path : GoTo endh
+	On Error GoTo handler
+	
+	Set ExcelSheet = ExcelApp.Workbooks(1).Worksheets(1)
+	If Err()<>0 Then Err=0 : Print "Ошибка ExcelApp.Workbooks(1).Worksheets(1) при открытии " : GoTo endh
+	On Error GoTo handler
+	
+	
+	' Определяем БД
+	Set s = New NotesSession
+	'Set db = s.CurrentDatabase
+	
+	For i=3 To 4
+		Call FillCert(i)
+	Next i
+	
+	If Right(j,1) = "2" Or Right(j,1) = "3" Or Right(j,1) = "4" Then
+		txt = " свидетельства"
+	ElseIf Right(j,1) = "1" Then
+		txt = " свидетельство"
+	Else
+		txt = " свидетельств"
+	End If
+	
+	MsgBox "Обработано " + Str(j) + txt
+	
+	ExcelApp.DisplayAlerts = False
+	ExcelApp.Quit
+	
+	REM +++++++++++++++++++++++++++++
+	GoTo endh
+handler:
+	ExcelApp.DisplayAlerts = False
+	ExcelApp.Quit
+	Dim strError As String
+	strError = " Ошибка в Процедуре { Initialize } из Агента { Закачка свидетельств из эскулапа }, строка " + CStr(Erl) + Chr(10) + Error$
+	Error Err, strError
+endh:
+End Sub
+%REM
+	Function fillCert 29/01/18
+	Description: Свидетельства
+%END REM
+Function FillCert(i As Integer)
+	On Error GoTo handler 'обработчик ошибок
+	REM +++++++++++++++++++++++++++++	
+	Dim unid$, unidorg$, tmp$, tmp2$, opf$, pn$, kn$, inn$, inntmp$
+	Dim innarr, unidorgarr, pnarr, knarr As Variant
+	Dim doc, uidoc As NotesDocument
+	Dim view As NotesView
+	
+	' Определяем БД
+	Set db = s.Currentdatabase
+	
+	'Определяем организацию по ИНН и получаем ее UNID и данные
+	inn = ExcelSheet.Cells(i,2).Value
+	inn = Val(Trim(inn))
+	
+	Set view = db.getview("INNtoUNID")
+	Set uidoc = view.Getfirstdocument()
+	
+	inntmp = Val(uidoc.Getitemvalue("INN")(0))
+	
+	While inn <> inntmp
+		Set uidoc = view.Getnextdocument(uidoc)
+		inntmp = Val(uidoc.Getitemvalue("INN")(0))
+	Wend
+	
+	' Создаем документ в БД
+	Set doc = db.Createdocument()
+	
+	On Error GoTo endh 'обработчик ошибок
+	'Получаем SROUNID 
+	unidorg = uidoc.Getitemvalue("OrgChlenSROUNID")(0) 
+	'Получаем pn
+	pn = uidoc.Getitemvalue("OrgChlenSROТName")(0)
+	'Получаем kn
+	kn = uidoc.Getitemvalue("OrgChlenSROТNameShow")(0)
+	
+	' Заполняем UNID
+	unid =  doc.Universalid 
+	Call doc.Replaceitemvalue("UNID", unid)
+	' OrgChlenSROTName
+	Call doc.Replaceitemvalue("OrgChlenSROТName", pn)	
+	' OrgChlenSROUNID
+	Call doc.Replaceitemvalue("OrgChlenSROUNID", unidorg)
+	' OrgChlenSROTName
+	'Call doc.Replaceitemvalue("OrgChlenSROТNameShow", kn)	
+	' Определяем имя формы
+	Call doc.Replaceitemvalue("Form", "SertifikacijaUslugi")
+	' Заполняем права доступа
+	Call doc.Replaceitemvalue("Readers_Ex", "[OPS]")
+	Call doc.Replaceitemvalue("Readers", "[ALL]")
+	Call doc.Replaceitemvalue("Authours", "[ALL]")
+
+
+	' ИНН в форме
+	Call doc.Replaceitemvalue("INN", inn)
+	
+	' Орган сертификации
+	Call doc.Replaceitemvalue("CertOrgan", "СРО А 'Подземдорстрой'")
+	
+	' Поле "в РТН"
+	Call doc.Replaceitemvalue("V_rostex", "1")
+	
+	' Дата выдачи
+	tmp = ExcelSheet.Cells(i,9).Value
+	Call doc.Replaceitemvalue("DateS", tmp)
+	
+	' Номер св-ва
+	tmp = ExcelSheet.Cells(i,8).Value
+	Call doc.Replaceitemvalue("NomerSvidetelstva", tmp)
+	
+	' Дата ранее выданного св-ва
+	tmp = ExcelSheet.Cells(i,14).Value
+	Call doc.Replaceitemvalue("DateSOld", tmp)
+	
+	' Номер ранеее выданного св-ва
+	tmp = ExcelSheet.Cells(i,13).Value
+	Call doc.Replaceitemvalue("NomerSvidetelstvaOld", tmp)
+	
+	' Область действия
+	Call doc.Replaceitemvalue("OblastDejstvija", "территория РФ")
+	
+	' Статус св-ва - прекращено
+	Call doc.Replaceitemvalue("Status", "9")
+	
+	'Дата прекращения
+	tmp = ExcelSheet.Cells(i,11).Value
+	Call doc.Replaceitemvalue("OsnovaniePrekrashchenijaDate", tmp)
+	
+	'Основание выдачи св-ва
+	'Орган принявший решение
+	Call doc.Replaceitemvalue("Osnovanie_OrganUpravlenPrinResh", "Совет партнерства")
+	
+	'Номер протокола заседания
+	tmp = ExcelSheet.Cells(i, 28).Value
+	Call doc.Replaceitemvalue("Osnovanie_NomerProtocolZasedaniy", tmp)
+	
+	'Дата принятия решения
+	tmp = ExcelSheet.Cells(i, 29).Value
+	Call doc.Replaceitemvalue("Osnovanie_Date", tmp)
+	
+	'Стоимость по договору (добавить в форму поле-StoimPoDog)
+	tmp = ExcelSheet.Cells(i, 20).Value
+	Call doc.Replaceitemvalue("StoimPoDog", tmp)
+	
+	Call doc.Save(True, True, True)	
+	
+	j=j+1
+	REM +++++++++++++++++++++++++++++
+	GoTo endh
+handler:
+	ExcelApp.DisplayAlerts = False
+	ExcelApp.Quit
+	Dim strError As String
+	strError = " Ошибка в { функции FillCert}, строка " + CStr(Erl) + Chr(10) + Error$
+	'Error Err, strError
+	MsgBox strError
+	End
+endh:
+End Function
