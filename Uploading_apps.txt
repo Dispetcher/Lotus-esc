@@ -1,5 +1,5 @@
 %REM
-	New Agent Application Uploading from esculap
+	New Agent Application Uploading from Esculap software
 	Created 25/12/2017 Dmitry Skoblikov
 	Edited 25/10/2018 Dmitry Skoblikov
 	Description: Comments for Agent
